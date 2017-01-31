@@ -1,6 +1,6 @@
 /*
 This program creates two processes, which assign different values to the same global variable
-The LTL formulae asssert some claims over the properties which are expected to hold during/after execution
+The LTL formulae asssert some claims over the properties which are expected to hold during/after execution. They have been model checked for semantic validity.
 */
 
 int n = 0, finish = 0;
