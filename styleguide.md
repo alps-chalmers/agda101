@@ -30,11 +30,17 @@ one group. Example signature:
 
     foo : {x, y : Bar} -> (z : Baz) -> Qux
     
-Function names should start with lower case letters and in names with multiple 
-words succeeding words start with UPPER case letters.
+Function and type names
+-----------------------
+Function names and constructors should start with lower case letters. In multi word names 
+the words succeeding the first start with UPPER case letters.
     
     foo : ...
     fooBar : ...
+
+Types should start with UPPER case letters
+
+    data Type : set where
 
 
 Structure / import-export rules
