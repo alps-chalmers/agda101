@@ -29,6 +29,12 @@ When you have multiple arguments of one type you can still put them in
 one group. Example signature:
 
     foo : {x, y : Bar} -> (z : Baz) -> Qux
+    
+Function names should start with lower case letters and in names with multiple 
+words succeeding words start with UPPER case letters.
+    
+    foo : ...
+    fooBar : ...
 
 
 Structure / import-export rules
