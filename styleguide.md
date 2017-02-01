@@ -40,7 +40,7 @@ the words succeeding the first start with UPPER case letters.
 
 Types should start with UPPER case letters
 
-    data Type : set where
+    data Type : Set where
 
 
 Structure / import-export rules
