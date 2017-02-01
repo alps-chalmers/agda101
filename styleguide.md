@@ -28,7 +28,7 @@ Good signature:
 When you have multiple arguments of one type you can still put them in
 one group. Example signature:
 
-    foo : {x, y : Bar} -> (z : Baz) -> Qux
+    foo : {x y : Bar} -> (z : Baz) -> Qux
     
 Function and type names
 -----------------------
