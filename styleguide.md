@@ -1,26 +1,48 @@
 ALPS Agda Style Guide
 =====================
 
-Just writing down some ideas for what we want to have in our style guide.
+Some rules for agda code that everyone has to follow when working on
+shared code. Code you keep in your personal classrooms don't have to
+live up to the standard but it's a good idea use them anyway!
 
-Propositions (by Erik)
-----------------------
+Use only ascii characters.
+---------------------
 
-  * No special (unicode) characters
+Agda allows and sometimes the tutorials promote use of non-ascii characters
+because they look cool or are close to real math notation. This is bad
+since we are all using different software when writing code and some characters
+are more and less friendly with some software.
 
-      Since different editors/keyboard configs/operating systems have
-      difficulty entering different characters we should stick to the
-      basic set of symbols. Since agda lets you create arbitrarily long
-      combinations of basically any characters anyway we shouldn't run out
-      of expressive function/operator names anyway.
+Use lots of arrows in type signatures.
+--------------------------------------
+You can skip alot of arrows in your type signatures in agda but we will try
+to not use this syntactic sugar since it makes code less readable more often
+than not. Example bad signature:
 
-  * Type signatures?
+    foo : {x : Bar}(y : Baz) -> Qux
 
-      Some standard for type signatures so we all enter them in the same way
-      for ease of reading. Agda has some syntactic sugar that we should decide
-      whether we use or not.
+Good signature:
 
-  * Source structure
+    foo : {x : Bar} -> (y : Baz) -> Qux
 
-      Some guidelines for how we structure our code and handle
-      imports/modules etc.
+When you have multiple arguments of one type you can still put them in
+one group. Example signature:
+
+    foo : {x y : Bar} -> (z : Baz) -> Qux
+    
+Function and type names
+-----------------------
+Function names and constructors should start with lower case letters. In multi word names 
+the words succeeding the first start with UPPER case letters.
+    
+    foo : ...
+    fooBar : ...
+
+Types should start with UPPER case letters
+
+    data Type : Set where
+
+
+Structure / import-export rules
+-------------------------------
+Vandelay? Corvelay? TOO BE ADDED.
