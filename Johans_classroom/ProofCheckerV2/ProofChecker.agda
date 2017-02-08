@@ -1,3 +1,5 @@
+{-# OPTIONS --no-termination-check #-}
+
 module ProofChecker where
 
 open import State
@@ -6,10 +8,17 @@ open import Lists
 open import Bool
 open import MapFold
 
-basicState : State
-basicState = record { trans = ((P "s2") ==> (<>("x" eqN succ zero))) :: ( ((P "s1") ==> (<> (pred (P "s2")))) :: [])
+reallyBasicState : State
+reallyBasicState = record { trans = ((P (succ zero)) ==> (("x" eqN succ zero))) :: ( ((P zero) ==> ((pred (P (succ zero))))) :: [])
                     ; facts = ("x" eqN zero) :: []
-                    ; goal = pred (P "s1") => (<> ("x" eqN succ zero))
+                    ; goal = pred (P zero) => (("x" eqN succ zero))
+                    }
+
+
+basicState : State
+basicState = record { trans = ((P (succ zero)) ==> (<>("x" eqN succ zero))) :: ( ((P zero) ==> (<> (pred (P (succ zero))))) :: [])
+                    ; facts = ("x" eqN zero) :: []
+                    ; goal = pred (P zero) => (<> ("x" eqN succ zero))
                     }
 
 
@@ -17,20 +26,21 @@ find<> : State -> State
 find<> s = {! filter  !}
 
 findPath : State -> Trans
-findPath s = ?
+findPath s = {! nothing  !}
 
-prove' : State -> State
-prove' s = if goalReached s then s else prove' (findPath s)
+prove : State -> Bool
+prove s with goalReached s
+prove s | true = true
+prove (state trans facts (pred x)) | false = {! eval x !}
+prove (state trans facts (<> goal)) | false = {!   !}
+prove (state trans facts ([#] goal)) | false = {!   !}
+prove (state trans facts (p => q)) | false = prove (assume p (state trans facts q))
+prove (state trans facts (x eqN n)) | false = lookup (x eqN n) facts
+prove (state trans facts bottom) | false = false
 
-prove : State -> State
-prove (state trans facts (pred x)) = {!   !}
-prove (state trans facts (<> goal)) = {! find<>   !}
-prove (state trans facts ([-] goal)) = {!   !}
-prove (state trans facts (p => q)) = prove' (assume p (state trans facts q))
-prove (state trans facts (x eqN x₁)) = {!   !}
+proveReallyBasic = prove reallyBasicState
 
-
-proveBasic : State
+proveBasic : Bool
 proveBasic = prove basicState
 
 {-
@@ -40,7 +50,7 @@ int x = 0;
 
 init{
 s1: run A();
-s3  assert (<>x==1)
+s3: assert (<>x==1)
 }
 
 proctype A(){
