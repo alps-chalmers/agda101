@@ -6,8 +6,33 @@ open import Lists
 open import MapFold
 open import Nat
 
-
 {-# BUILTIN NATURAL Nat #-}
+
+{- The Promela program for this proof
+
+int x = 0;
+
+init{
+  P0: run A();
+  P2:
+}
+
+proc A(){
+  P1: x = 1;
+}
+
+}
+
+{ Natural deduction proof
+  1. All premises
+  ---------------------
+  2. P2     Assumption
+  3. P1     ->e 1,2
+  4. x==1   ->e 1,3
+  ---------------------
+  5. P2 -> x==1   ->i 2-4
+-}
+
 
 deadState : State
 deadState = st empty empty empty F
