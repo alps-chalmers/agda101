@@ -152,10 +152,30 @@ module hw1 where
   q (loc (pair p two) val (pair x y)) = loc (pair p one) val (pair x (y +1)) -- example q2 : y = y+1 (atomic)
   q (loc l val v) = loc l val v
 
+  data Real : State → Set where
+    Start : Real init
+    stepp : {s : State} → Real s → Real (p s)
+    stepq : {s : State} → Real s → Real (q s)
+
+
+  --I wan't a type that is a state but where x is 1
+  data Goal : Set where
+    
+
+
+  --proof of type box diamond x=1
+  --with other words: every real state can yeild a state with x=1
+
+  proof : {s : State} -> {N  : Nat} -> {L : Loc}   → Real s → Real (loc L val (pair (O +1) N))
+  --proof : {s : State} → Real s → {l : Loc} {y : Nat} → Real Goal
+  proof Start = stepp Start
+  proof stepp s = stepp s
+  proof stepq s = stepp (stepq s)
+  
  {-
   --PSEUDO CODE
-  data Eventually : Bool → Set where
-    eventually true : Eventually
+  data Eventually : State → State → Set where 
+     : Eventually
 
   data Always : Bool → Set where
     always true : Always
@@ -165,11 +185,11 @@ module hw1 where
   --assumption of fair scheduler
   assumption : {s : State} always eventually (p s) and always eventually (q s)
 
-  proof : eventually (x equals (O +1))
+  proof : (real s) implies eventually (x equals (O +1))
   
     use always eventually p of s
   case1 : p (loc (pair one _) val _) → x = 1
 
-    use state only constructed through init or p or q: state  where loc(p) at end only constructed by p where loc(p) at one 
+    use state only constructed through init or p or q: state  where 
   case2 : p (loc (pair end _) val _) →  x = x (=1 from case1)
   -}
