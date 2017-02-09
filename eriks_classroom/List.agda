@@ -9,7 +9,7 @@ data List (A : Set) : Set where
 
 length : {A : Set} -> List A -> N
 length []        = zero
-length (x :: xs) = suc (length xs)
+length (x :: xs) = s (length xs)
 
 empty : {A : Set} -> List A -> Bool
 empty []        = true
@@ -23,7 +23,7 @@ head (x :: _) = Just x
 ix : {A : Set} -> List A -> N -> Maybe A
 ix [] _ = Nothing
 ix (x :: _) zero = Just x
-ix (_ :: xs) (suc n) = ix xs n
+ix (_ :: xs) (s n) = ix xs n
 
 -- for fun version of ix, usage xs [ n ]
 _[_] : {A : Set} -> List A -> N -> Maybe A
