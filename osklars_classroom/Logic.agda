@@ -70,6 +70,9 @@ applyRule p (->e _ _) = deadState
 goalReached : Proof → Bool
 goalReached p = known p (Proof.goal p)
 
+fix : Proof → Proof
+fix (pr props provs steps (a => b)) = prove (pr props provs steps b) a
+fix pruf = pruf
 
 --The checker moves propositions from program list to proven list using the rules in steps and returns whether goal was reached in the process.
 
