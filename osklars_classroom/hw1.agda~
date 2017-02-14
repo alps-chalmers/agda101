@@ -131,12 +131,7 @@ module hw1 where
 
   data State : Set where
     loc_val_ : Loc → Val → State
-  {-  
-  data State : Set where
-    init : Loc → Val → State
-    p : State → State
-    q : State → State
-    -}
+
 
   init : State
   init = loc (pair one one) val (pair O O)
@@ -152,6 +147,21 @@ module hw1 where
   q (loc (pair p two) val (pair x y)) = loc (pair p one) val (pair x (y +1)) -- example q2 : y = y+1 (atomic)
   q (loc l val v) = loc l val v
 
+
+
+
+
+{-  
+  data State : Set where
+    init : Loc → Val → State
+    p : State → State
+    q : State → State
+    -}
+
+
+
+
+
   data Real : State → Set where
     Start : Real init
     stepp : {s : State} → Real s → Real (p s)
@@ -166,12 +176,35 @@ module hw1 where
   --proof of type box diamond x=1
   --with other words: every real state can yeild a state with x=1
 
-  proof : {s : State} -> {N  : Nat} -> {L : Loc}   → Real s → Real (loc L val (pair (O +1) N))
+  proof : {s : State} -> {N  : Nat} -> {L : Loc} → Real s → Real (loc L val (pair (O +1) N))
   --proof : {s : State} → Real s → {l : Loc} {y : Nat} → Real Goal
   proof Start = stepp Start
   proof stepp s = stepp s
   proof stepq s = stepp (stepq s)
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  {-
   --PSEUDO CODE
   data Eventually : State → State → Set where 
