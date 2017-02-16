@@ -6,13 +6,13 @@ open import Imports
 -- p and q
 
 data Pl : Set where
-  1 : Pl
-  end : Pl
+  p1 : Pl
+  pend : Pl
 
 data Ql : Set where
-  1 : Ql
-  2 : Ql
-  end : Ql
+  q1 : Ql
+  q2 : Ql
+  qend : Ql
 
 data Loc : Set where
   l : Pl → Ql → Loc
@@ -41,49 +41,45 @@ init = st (l p1 q1) (v O O)
 -- q2 : y = y+1 (atomic)
 
 p : State → State
-p (st (l 1 q) (v x y)) = st (l end q) (v (O +1) y)
+p (st (l p1 q) (v x y)) = st (l pend q) (v (O +1) y)
 p s = s -- gets here iff Pl==end
 
 q : State → State
-q (st (l p 1) (val O y)) = st (l p q1) (val O y) -- case x==0
-q (st (l p 1) (v x y)) = st (l p end) (v x y) -- else
-q (st (l p 2) (v x y)) = st (l p 1) (v x (y +1))
+q (st (l p q1) (v O y)) = st (l p q2) (v O y) -- case x==0
+q (st (l p q1) (v x y)) = st (l p qend) (v x y) -- else
+q (st (l p q2) (v x y)) = st (l p q1) (v x (y +1))
 q s = s -- gets here iff Ql==end
 
 
 
 
-
-{-  
-data State : Set where
-init : Loc → Val → State
-p : State → State
-q : State → State
--}
-
-
-
-
-
 data Real : State → Set where
-Start : Real init
-stepp : {s : State} → Real s → Real (p s)
-stepq : {s : State} → Real s → Real (q s)
+  Start : Real init
+  stepp : {s : State} → Real s → Real (p s)
+  stepq : {s : State} → Real s → Real (q s)
 
 
 --I wan't a type that is a state but where x is 1
-data Goal : Set where
-
+data xfixed : Nat → Set where
+  correct : {x y : Nat} → {l : Loc} → Real (st l (v x y)) → xfixed x
 
 
 --proof of type box diamond x=1
 --with other words: every real state can yeild a state with x=1
 
-proof : {s : State} -> {N  : Nat} -> {L : Loc} → Real s → Real (loc L val (pair (O +1) N))
---proof : {s : State} → Real s → {l : Loc} {y : Nat} → Real Goal
-proof Start = stepp Start
-proof stepp s = stepp s
-proof stepq s = stepp (stepq s)
+proof : {s : State} → Real s → xfixed (O +1)
+proof Start = correct (stepp Start)
+proof (stepp r) = correct (stepp r)
+proof (stepq r) = correct (stepp (stepq r))
+
+
+
+
+
+
+
+
+
 
 
 

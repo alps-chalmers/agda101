@@ -56,7 +56,3 @@ module Imports where
   fold : {A B : Set} → (f : (A → B → A)) → A → List B → A
   fold f a [] = a
   fold f a (x , xs) = fold f (f a x) xs
-
-
-  
-
