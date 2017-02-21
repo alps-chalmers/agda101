@@ -12,6 +12,10 @@ data Eq (A : Set) : Set where
   _===_ : A -> A -> Eq A
   _/==_ : A -> A -> Eq A
 
+isEmpty : {A : Set} -> List A -> Bool
+isEmpty empty = true
+isEmpty (x :: xs) = false
+
 add : {A : Set} -> A -> List A -> List A
 add x xs = x :: xs
 
