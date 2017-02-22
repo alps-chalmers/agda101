@@ -1,7 +1,13 @@
 module LTL where
 
--- infixr 0 _⇒_
--- infixr 5 _∨_
+open import Props
 
-data TPred : Set where
-  T F : TPred
+data LTL : Set where
+  T ⊥       : LTL
+  prop      : Props → LTL
+  ∼_        : LTL → LTL
+  □         : LTL → LTL
+  ◇         : LTL → LTL
+  _∧_ _∨_   : LTL -> LTL -> LTL
+  _⇒_       : LTL → LTL -> LTL
+  _~>_      : LTL → LTL → LTL
