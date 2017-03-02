@@ -53,18 +53,6 @@ q s = s -- gets here iff Ql==end
 
 
 
-
-{-  
-data State : Set where
-  init : Loc → Val → State
-  p : State → State
-  q : State → State
--}
-
-
-
-
-
 data Real : State → Set where
   Start : Real init
   stepp : {s : State} → Real s → Real (p s)
@@ -72,18 +60,26 @@ data Real : State → Set where
 
 
 --I wan't a type that is a state but where x is 1
-data Goal : Set where
-
+data xfixed : Nat → Set where
+  correct : {x y : Nat} → {l : Loc} → Real (st l (v x y)) → xfixed x
 
 
 --proof of type box diamond x=1
 --with other words: every real state can yeild a state with x=1
 
-proof : {s : State} -> {N  : Nat} -> {L : Loc} → Real s → Real (st L (v (O +1) N))
---proof : {s : State} → Real s → {l : Loc} {y : Nat} → Real Goal
-proof Start = stepp Start
-proof stepp s = stepp s
-proof stepq s = stepp (stepq s)
+proof : {s : State} → Real s → xfixed (O +1)
+proof Start = correct (stepp Start)
+proof (stepp r) = correct (stepp r)
+proof (stepq r) = correct (stepp (stepq r))
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,0 +1,36 @@
+boolean y; int x;
+a: cobegin
+    b: while < x<10 > do b2: < y:=true > od;
+    c: < y:=false >
+    #
+    d: while < y > do d2: < x:=x+1 > od;
+coend
+
+does not terminate for all init where y = true and x < 10.
+
+better example is:
+
+boolean y; int x;
+i1: < y:=true >;
+i2: < x:=0 >;
+a: cobegin
+    b: while < x<10 > do nope od;
+    c: < y:=false >
+    #
+    d: while < y > do d2: < x:=x+1 > od;
+    (d': < y:=true >)
+coend
+
+proving (at i1) leads to (after a)
+
+1. (at i1) leads to (at b) ^ (at d)
+
+2. always(in b implies y=true) ^ (in b) ^ (in d) leads to eventually x>=10
+
+3. (at b ^ x>=10) leads to (at c)
+
+4. (at c) leads to (always not y) ^ after c
+
+5. (in d) ^ (always not y) leads to after d
+
+5. after c ^ after d = (after a)

@@ -67,10 +67,13 @@ data xfixed : Nat → Set where
 --proof of type box diamond x=1
 --with other words: every real state can yeild a state with x=1
 
+invariant : xfixed (O +1) → xfixed (O +1)
+invariant (correct r) = correct (stepq r) 
+
 proof : {s : State} → Real s → xfixed (O +1)
 proof Start = correct (stepp Start)
 proof (stepp r) = correct (stepp r)
-proof (stepq r) = correct (stepp (stepq r))
+proof (stepq r) =  correct (stepp (stepq r))
 
 
 
