@@ -54,3 +54,6 @@ headI (x :: xs) = x
 _+++_ : {A : Set} {n m : Nat} -> IList A n -> IList A m -> IList A (n + m)
 empty +++ ys = ys
 (x :: xs) +++ ys = x :: (xs +++ ys)
+
+length : {A : Set} {n : Nat} -> IList A n -> Nat
+length {A} {n} x = n

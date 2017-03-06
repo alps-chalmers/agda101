@@ -6,6 +6,7 @@ open import LTL
 open import Program
 
 data Rule : Set where
+  --rule :
 
 record ProofState : Set where
   constructor proofState

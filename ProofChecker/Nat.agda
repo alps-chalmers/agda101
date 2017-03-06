@@ -1,6 +1,10 @@
 module Nat where
 open import Bool
 
+
+-- {-# FOREIGN GHC type AgdaEither a b c d = Either c d #-}
+
+
 data Nat : Set where
   zero : Nat
   succ : Nat -> Nat

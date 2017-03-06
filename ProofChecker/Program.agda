@@ -3,6 +3,7 @@ module Program where
 open import Lists
 open import Nat
 open import Bool
+open import Label
 
 data NVar : Set where
   vN : (i : Nat) -> NVar
@@ -32,8 +33,7 @@ data Stm : Set where
   <_:=b_> : BVar -> ExpB -> Stm
   wait : Exp -> Stm
 
-data Label : Set where
-  s : Nat -> Label
+
 
 data Seg : Set where
   seg : Label -> Stm -> Seg
