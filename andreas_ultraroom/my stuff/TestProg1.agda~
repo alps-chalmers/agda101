@@ -1,0 +1,19 @@
+module TestProg1 where
+
+--open import Nat
+open import Bool
+open import Lists
+open import Data.Nat
+open import Program
+-- {-# BUILTIN NATURAL Nat #-}
+
+s0 s1 s2 s3 s4 : Seg
+s0 = seg (s 0) < (vN 0) :=n (nat 0) >
+s1 = seg (s 1) < (vN 1) :=n (nat 0) >
+s3 = seg (s 3) < (vN 0) :=n (nat 1) >
+s4 = seg (s 4) < (vN 1) :=n (nat 1) >
+s2 = par (s 2) (s3 :: (s4 :: empty))
+
+p : Prog
+p = prog (block (s0 :: (s1 :: (s2 :: empty))))
+

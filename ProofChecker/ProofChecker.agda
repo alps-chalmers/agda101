@@ -32,7 +32,7 @@ program = prog init main
 -- trans p = translate p
 
 testApply : LTL
-testApply = applyRule (translate program) ((at (s 0)) :: empty) (assRule (at (s 0)))
+testApply = applyRule (translate program) ((at (s 1)) :: empty) (assRule (at (s 1)))
 
 
 -- (translate' init) ++ (translate main)
