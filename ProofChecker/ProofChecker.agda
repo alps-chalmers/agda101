@@ -11,6 +11,7 @@ open import Program
 open import LTL
 open import Translator
 open import Label
+open import Rules
 
 {-# BUILTIN NATURAL Nat #-}
 
@@ -27,8 +28,13 @@ program = prog init main
         s2 = seg (s 2) < (vN 1) :=n nat 1 >
         main = par (s 0) (s1 :: (s2 :: empty))
 
-trans : Prog -> List Entails
-trans p = translate p
+-- trans : Prog -> List Entails
+-- trans p = translate p
+
+testApply : LTL
+testApply = applyRule (translate program) ((at (s 0)) :: empty) (assRule (at (s 0)))
+
+
 -- (translate' init) ++ (translate main)
 
 {-}

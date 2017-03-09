@@ -40,8 +40,8 @@ legalApplication (xD :: ts) a l = legalApplication ts a l
 legalApplication ([ pre ] a' [ post ] :: ts) a l = if (isEq l pre) && isEqA a a' then Just post else legalApplication ts a l
 
 -- Skicka med segment?
-applyRule : List TransRel → List LTL → LTL → Rule → LTL
-applyRule ts ls l (assRule φ) with legalApplication ts assign φ
+applyRule : List TransRel → List LTL → Rule → LTL
+applyRule ts ls (assRule φ) with legalApplication ts assign φ
 ... | Just post = if elem φ ls isEq then post else ⊥
 ... | Nothing = ⊥
 
