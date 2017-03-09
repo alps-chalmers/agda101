@@ -35,9 +35,9 @@ empty ++ ys = ys
 _eq_ : {A : Set} {{_ : Eq A}} -> A -> A -> Bool
 x eq y = true
 
-_elem_ : {A : Set} {{_ : Eq A}} -> A -> List A -> Bool
-x elem empty = false
-x elem (y :: ys) = if (x eq y) then true else (x elem ys)
+elem : {A : Set}  -> A -> List A -> (A -> A -> Bool) -> Bool
+elem _ empty _ = false
+elem x (y :: ys) f = if (f x y) then true else (elem x ys f)
 
 conc : {A : Set} -> List (List A) -> List A
 conc empty = empty
