@@ -9,9 +9,6 @@ open import Nat
 data _≡_ {A : Set} : A → A → Set where
   refl : (a : A) → a ≡ a
 
-
-
-
 data LTL : Set where
   T ⊥         : LTL
   -- prop        : Props → LTL

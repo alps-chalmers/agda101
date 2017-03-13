@@ -15,24 +15,27 @@ open import Rules
 
 {-# BUILTIN NATURAL Nat #-}
 
-A : Seg
-A = block (seg (s 2) < (vN 0) :=n (nat 2) > :: empty)
-
-B : Seg
-B = block (seg (s 3) < (vN 1) :=n (nat 1) > :: empty)
 
 program : Prog
-program = prog init main
-  where init = < vN 0 :=n nat 0 > :: (< vN 1 :=n nat 0 > :: empty)
-        s1 = seg (s 1) < (vN 0) :=n nat 1 >
-        s2 = seg (s 2) < (vN 1) :=n nat 1 >
-        main = par (s 0) (s1 :: (s2 :: empty))
+program = prog main
+  where -- init = < vN 0 :=n nat 0 > :: (< vN 1 :=n nat 0 > :: empty)
+        s1 = seg (s 2) < (vN 0) :=n nat 1 >
+        s2 = seg (s 3) < (vN 1) :=n nat 1 >
+        main = block (s 0) (par (s 1) (s1 :: (s2 :: empty)) :: empty)
 
 -- trans : Prog -> List Entails
 -- trans p = translate p
 
-testApply : LTL
-testApply = applyRule (translate program) ((at (s 1)) :: empty) (assRule (at (s 1)))
+step2 : List TransRel → List LTL → LTL
+step2 rel truths = applyRule rel ((at (s 1)) :: empty) (parRule (at (s 1)))
+
+step1 : List TransRel → List LTL → LTL
+step1 rel truths = step2 rel (result :: empty)
+  where result = applyRule rel truths (seqRule (at (s 0)))
+
+prove : LTL
+prove = step1 (translate program) ((at (s 0)) :: empty)
+
 
 
 -- (translate' init) ++ (translate main)

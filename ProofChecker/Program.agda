@@ -35,12 +35,18 @@ data Stm : Set where
 
 data Seg : Set where
   seg : Label → Stm → Seg
-  block : List Seg → Seg
+  block : Label → List Seg → Seg
   par : Label → List Seg → Seg
   while if : Label → ExpB → Seg → Seg
+
+label : Seg → Label
+label (seg x x₁) = x
+label (block x x₁) = x
+label (par x x₁) = x
+label (while x x₁ x₂) = x
+label (if x x₁ x₂) = x
 
 record Prog : Set where
   constructor prog
   field
-    init : List Stm
     main : Seg

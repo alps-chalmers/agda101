@@ -12,6 +12,8 @@ data _⊢_ : LTL → LTL → Set where
 
 data Rule : Set where
   assRule : LTL → Rule
+  parRule : LTL → Rule
+  seqRule : LTL → Rule
 -- axiom : {φ ψ : LTL} → φ ⊢ ψ → Rule
 --  rel   : TransRel → Rule
 
@@ -33,10 +35,12 @@ isEq _ _ = false
 
 isEqA : Action → Action → Bool
 isEqA assign assign = true
+isEqA par par = true
+isEqA _ _ = false
 
 legalApplication : List TransRel → Action → LTL → Maybe LTL
 legalApplication empty a l = Nothing
-legalApplication (xD :: ts) a l = legalApplication ts a l
+legalApplication (todo :: ts) a l = legalApplication ts a l
 legalApplication ([ pre ] a' [ post ] :: ts) a l = if (isEq l pre) && isEqA a a' then Just post else legalApplication ts a l
 
 -- Skicka med segment?
@@ -44,5 +48,9 @@ applyRule : List TransRel → List LTL → Rule → LTL
 applyRule ts ls (assRule φ) with legalApplication ts assign φ
 ... | Just post = if elem φ ls isEq then post else ⊥
 ... | Nothing = ⊥
-
--- applyRule ltls l (axiom {φ} {ψ} x) = ψ -- if φ in ltls then ψ else Fail
+applyRule ts ls (parRule φ) with legalApplication ts par φ
+... | Just post = if elem φ ls isEq then post else ⊥
+... | Nothing = ⊥
+applyRule ts ls (seqRule φ) with legalApplication ts seq φ
+... | Just post = if elem φ ls isEq then post else ⊥
+... | Nothing = ⊥
