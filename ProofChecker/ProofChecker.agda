@@ -27,14 +27,14 @@ program = prog main
 -- trans p = translate p
 
 step2 : List TransRel → List LTL → LTL
-step2 rel truths = applyRule rel ((at (s 1)) :: empty) (parRule (at (s 1)))
+step2 rel truths = applyRule rel truths (parRule (at (s 2)))
 
 step1 : List TransRel → List LTL → LTL
 step1 rel truths = step2 rel (result :: empty)
-  where result = applyRule rel truths (seqRule (at (s 0)))
+  where result = applyRule rel truths (seqRule (at (s 1)))
 
 prove : LTL
-prove = step1 (translate program) ((at (s 0)) :: empty)
+prove = step1 (translate program) ((at (s 1)) :: empty)
 
 
 
