@@ -2,6 +2,7 @@ module Rules where
 
 open import Translator
 open import LTL
+open import LTLRules
 open import Lists
 open import Bool
 open import Maybe
@@ -14,6 +15,8 @@ data Rule : Set where
   assRule : LTL → Rule
   parRule : LTL → Rule
   seqRule : LTL → Rule
+  andRule1 : LTL → Rule
+  andRule2 : LTL → Rule
 -- axiom : {φ ψ : LTL} → φ ⊢ ψ → Rule
 --  rel   : TransRel → Rule
 
@@ -36,6 +39,7 @@ isEq _ _ = false
 isEqA : Action → Action → Bool
 isEqA assign assign = true
 isEqA par par = true
+isEqA seq sewq = true
 isEqA _ _ = false
 
 legalApplication : List TransRel → Action → LTL → Maybe LTL
@@ -54,3 +58,6 @@ applyRule ts ls (parRule φ) with legalApplication ts par φ
 applyRule ts ls (seqRule φ) with legalApplication ts seq φ
 ... | Just post = if elem φ ls isEq then post else ⊥
 ... | Nothing = ⊥
+applyRule ts ls (andRule1 (φ ∧ ψ)) = φ
+applyRule ts ls (andRule2 (φ ∧ ψ)) = ψ
+applyRule _ _ _ = ⊥

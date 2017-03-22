@@ -1,6 +1,5 @@
 module ProofChecker where
 
-open import ProofState
 open import Bool
 open import Lists
 open import Nat
@@ -13,63 +12,80 @@ open import Translator
 open import Label
 open import Rules
 
+-- Proof step is a step or a list of steps
+
 {-# BUILTIN NATURAL Nat #-}
 
+record Proof : Set where
+  constructor proof
+  field
+    steps : List Rule
+    goal  : LTL
+
+proof1 : Proof
+proof1 = proof (r1 :: (r2 :: (r3 :: (r4 :: (r5 :: empty))))) (◇ (0 EQ 1))
+  where
+    r1 = seqRule (at (s 0))
+    r2 = parRule (at (s 1))
+    r3 = andRule1 ((at (s 2)) ∧ (at (s 3)))
+    r4 = assRule (at (s 2))
+    r5 = andRule2 (at (s 2) ∧ (0 EQ 1))
+
+proof2 : Proof
+proof2 = proof (r1 :: (r2 :: (r3 :: (r4 :: (r5 :: empty))))) ((at (s 0)) ⇒ (◇ (1 EQ 1)))
+  where
+    r1 = seqRule (at (s 0))
+    r2 = parRule (at (s 1))
+    r3 = andRule1 ((at (s 2)) ∧ (at (s 3)))
+    r4 = assRule (at (s 2))
+    r5 = andRule2 (at (s 2) ∧ (0 EQ 1))
+
+proof3 : Proof
+proof3 = proof empty ((at (s 2)) ⇒ (at (s 2)))
+
+proof4 : Proof
+proof4 = proof empty T
 
 program : Prog
 program = prog main
-  where -- init = < vN 0 :=n nat 0 > :: (< vN 1 :=n nat 0 > :: empty)
+  where
         s1 = seg (s 2) < (vN 0) :=n nat 1 >
         s2 = seg (s 3) < (vN 1) :=n nat 1 >
         main = block (s 0) (par (s 1) (s1 :: (s2 :: empty)) :: empty)
 
--- trans : Prog -> List Entails
--- trans p = translate p
+isProven : LTL → List LTL -> Bool
+isProven φ ls = elem φ ls isEq
 
-step2 : List TransRel → List LTL → LTL
-step2 rel truths = applyRule rel truths (parRule (at (s 2)))
+{-# TERMINATING #-}
 
-step1 : List TransRel → List LTL → LTL
-step1 rel truths = step2 rel (result :: empty)
-  where result = applyRule rel truths (seqRule (at (s 1)))
+proofCheck : Prog → Proof → List LTL → Bool
+proofCheck prg pf truths with Proof.goal pf
+... | T = true
+... | ⊥ = false
+... | φ ⇒ ψ = proofCheck prg (proof (Proof.steps pf) ψ) (ψ :: truths)
+... | ◇ φ = isProven φ (foldl (λ ltls r → (applyRule (translate prg) ltls r) :: empty) truths (Proof.steps pf))
+... | □ φ = false -- TODO add box
+... | φ = elem φ truths isEq
 
-prove : LTL
-prove = step1 (translate program) ((at (s 1)) :: empty)
 
-
-
--- (translate' init) ++ (translate main)
-
-{-}
-applyRule : ProofState -> Rule -> ProofState
-applyRule ps r = {!   !}
-
-isProven : ProofState -> Bool
-isProven ps = {!   !}
-
-proofCheck : ProofState -> Bool
-proofCheck ps = isProven (foldl (λ ps' r → applyRule ps' r) ps (ProofState.proof ps))
--}
 {- The Promela program for this proof
 
-int x = 0;
-int y = 0;
+int x;
+int y;
 
-init{
-a:  x = 1;
-b:  run A();
+s0:  init{
+s1: run A();
     run B();
 }
 
-a proc A(){
-c:  x = 2;
+proctype A(){
+s2:  x = 1;
 }
 
-a proc B(){
-d:  y = 1;
+proctype B(){
+s3:  y = 1;
 }
 
-goal: <> (x == 2)
-extended goal: a =~> x==2
+goal: <> (x == 1)
 
 -}

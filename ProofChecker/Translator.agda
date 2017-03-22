@@ -5,6 +5,7 @@ open import Lists
 open import MapFold
 open import Label
 open import LTL
+open import Maybe
 
 data Action : Set where
   assign : Action
@@ -39,8 +40,10 @@ blockTrans (x :: ( y :: segs)) = [ after (label x) ] seq [ at (label y) ] :: (bl
 
 translate' : Seg → List TransRel
 translate' (seg x stm) = (transStm x stm) :: empty
-translate' (block l xs) = foldl (λ ls se → (translate' se) ++ ls) empty xs ++ blockTrans xs
-translate' (par x xs) = [ (at x) ] par [ extractLabels xs ] :: empty
+translate' (block l xs) with head xs
+... | Just x = ([ (at l) ] seq [ (at (label x)) ]) :: (foldl (λ ls se → (translate' se) ++ ls) empty xs ++ blockTrans xs)
+... | _ = empty
+translate' (par x xs) = [ (at x) ] par [ extractLabels xs ] :: (conc (map (λ x → translate' x) xs))
 translate' (while x x₁ se) = empty
 translate' (if x x₁ se) = empty
 
