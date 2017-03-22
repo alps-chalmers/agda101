@@ -43,20 +43,19 @@ isEqA seq sewq = true
 isEqA _ _ = false
 
 legalApplication : List TransRel → Action → LTL → Maybe LTL
-legalApplication empty a l = Nothing
+legalApplication [] a l = Nothing
 legalApplication (todo :: ts) a l = legalApplication ts a l
 legalApplication ([ pre ] a' [ post ] :: ts) a l = if (isEq l pre) && isEqA a a' then Just post else legalApplication ts a l
 
--- Skicka med segment?
-applyRule : List TransRel → List LTL → Rule → LTL
+applyRule : List TransRel → LTL → Rule → LTL
 applyRule ts ls (assRule φ) with legalApplication ts assign φ
-... | Just post = if elem φ ls isEq then post else ⊥
+... | Just post = if isEq φ ls then post else ⊥
 ... | Nothing = ⊥
 applyRule ts ls (parRule φ) with legalApplication ts par φ
-... | Just post = if elem φ ls isEq then post else ⊥
+... | Just post = if isEq φ ls then post else ⊥
 ... | Nothing = ⊥
 applyRule ts ls (seqRule φ) with legalApplication ts seq φ
-... | Just post = if elem φ ls isEq then post else ⊥
+... | Just post = if isEq φ ls then post else ⊥
 ... | Nothing = ⊥
 applyRule ts ls (andRule1 (φ ∧ ψ)) = φ
 applyRule ts ls (andRule2 (φ ∧ ψ)) = ψ
