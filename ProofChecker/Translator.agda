@@ -30,7 +30,8 @@ transStm l < x >:=n< x₁ > = todo
 transStm l < (vN x) :=n nat n > = [ at l ] assign [ (after l) ∧ (x EQ n) ]
 transStm l < x :=n nVar x₁ > = todo
 transStm l < x >:=b< x₁ > = todo
-transStm l < x :=b x₁ > = todo
+transStm l < vB i :=b bool x₁ > = [ (at l) ] assign [ ((after l) ∧ (if x₁ then (isTrue i) else ∼ (isTrue i))) ]
+transStm l < x :=b bVar x₁ > = todo
 transStm l (wait x) = todo
 
 extractLabels : List Seg → LTL
