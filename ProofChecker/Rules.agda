@@ -10,6 +10,8 @@ open import Label
 
 data _⊢_ : LTL → LTL → Set where
 
+{-# BUILTIN NATURAL Nat #-}
+
 
 -- Index with rule and ltl
 data Rule : Set where
@@ -28,6 +30,41 @@ data Rule : Set where
   ∧-e2      : LTL → Rule
   ∧-i       : LTL → Rule
 
+-- Add action reference
+
+data Ru : LTL → Set where
+  id    : (φ : LTL) → Ru φ
+  ∧-i   : {φ ψ : LTL} → Ru φ → Ru ψ → Ru (φ ∧ ψ)
+  ∧-e₁  : {φ ψ : LTL} → Ru (φ ∧ ψ) → Ru φ
+  inInf : {l : Label} → Ru (in' l) → Ru ((at l) ∨ (after l))
+
+data Valid : Set where
+  yes : {φ : LTL} → Ru φ → Valid
+  no  : Valid -- TODO Add error message
+
+extract : {φ : LTL} → Ru φ → LTL
+extract {φ} _ = φ
+
+f : (φ : LTL) → Ru φ
+f x = id x
+
+r-∧-i : {φ ψ : LTL} → Ru (φ) → Ru (ψ) → Valid
+r-∧-i r₁ r₂ = yes (∧-i r₁ r₂)
+
+r-∧-e₁ : LTL → Valid
+r-∧-e₁ (φ ∧ ψ) = yes (∧-e₁ (id (φ ∧ ψ)))
+r-∧-e₁ _ = no
+
+
+test : Valid
+test = r-∧-e₁ (extract (id (at (s 0))))
+
+{-test : (φ : LTL) → Ru (φ ∧ φ)
+test x = r-∧-i (id x) (id x)-}
+
+r-inInf : LTL → Valid
+r-inInf (in' l) = yes (inInf (id (in' l)))
+r-inInf _ = no
 
 extLTL : Rule → LTL
 extLTL (assRule φ) = φ
