@@ -13,16 +13,18 @@ open import Rules
 
 -- Proof step is a step or a list of steps
 
-{-# BUILTIN NATURAL Nat #-}
-
 -- TODO Add condition rule for branching.
 
 data ProofStep : Set where
   pStep : Rule → ProofStep
   branch : Rule → List ProofStep → List ProofStep → ProofStep
 
+data PStep : Set where
+  pStep2 : {φ : LTL} → Ru φ → PStep
+
 data Proof : Set where
   proof : List ProofStep → Proof
+
 
 {-}
 branchProof : Proof
