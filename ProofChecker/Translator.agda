@@ -6,11 +6,19 @@ open import MapFold
 open import Label
 open import LTL
 open import Maybe
+open import Nat
 
 data Action : Set where
   assign : Action
   par    : Action
   seq    : Action
+  while  : Action
+  or     : Action
+  dummy  : Action
+  inInf  : Action
+  □-e    : Action
+  ltl    : Action
+  custom : Nat → Action
 
 data TransRel : Set where
   todo  : TransRel
