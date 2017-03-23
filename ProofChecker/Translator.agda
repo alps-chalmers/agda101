@@ -56,7 +56,7 @@ translate' (par x xs) = [ (at x) ] par [ extractLabels xs ] :: (conc (map (λ x 
 translate' (while l (bool x) se) = bCheck :: translate' se
   where bCheck = if x then [ at l ] while [ □ (in' (label se)) ] else [ at l ] while [ ( after (label se)) ]
 translate' (while l (bVar (vB i)) se) = bVarCheck :: (translate' se)
-  where bVarCheck = [ at l ] while [ (at (label se) ∧ isTrue i) ∨ ((after l) ∨ (∼ (isTrue i)))]
+  where bVarCheck = [ at l ] while [ (at (label se) ∧ isTrue i) ∨ ((after l) ∧ (∼ (isTrue i)))]
 translate' (if x x₁ se) = translate' se
 
 translate : Prog → List TransRel
