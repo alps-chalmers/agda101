@@ -3,7 +3,7 @@ module Program where
 open import N
 open import Bool
 
-Label = N
+{-Label = N
 
 module Labels where
   a = N0
@@ -15,6 +15,8 @@ module Labels where
   g = N6
   h = N7
   i = N8
+  -}
+
 
 data BVar : Set where
   bvar : N -> BVar
@@ -32,25 +34,44 @@ data NExpr : Set where
 
 
 data Statement : Set where
-  -- <_:=_>n      : NVar -> NExpr -> Statement
-  -- <_:=_>b      : BVar -> BExpr -> Statement
+  assignN      : NVar -> NExpr -> Statement
+  assignB      : BVar -> BExpr -> Statement
   assignment : Statement
+  composition : Statement -> Statement -> Statement
+  while : BExpr -> Statement -> Statement
+  cobegin : Statement -> Statement -> Statement
+{-
+data Props : Set where
+  _∧_ : Props -> Props -> Props
+  at inside after : Statement -> Props
+  _~>_ : Props -> Props -> Props
+
+data _⊢_ : Statement -> Props -> Set where
+  ∧-i   : {s : Statement} ->
+          {p q : Props} ->              (s ⊢ p) ->
+                                        (s ⊢ q) ->
+                                        --------
+                                        s ⊢ (p ∧ q)
+
+  ccf : {s a b : Statement} ->          a ⊢ (at a ~> after a) ->
+                                        b ⊢ (at b ~> after b) ->
+                                        (composition a b) ⊢ (at a ~> after b)
+
+  aaa-n : (x : NVar) ->
+          (n : NExpr) ->                  (assignN x n) ⊢
+                                          ((at (assignN x n)) ~>
+                                          (after (assignN x n)))
+  aaa-b : (p : BVar) ->
+          (b : BExpr) ->                  (assignB p b) ⊢
+                                          ((at (assignB p b)) ~>
+                                          (after (assignB p b)))
 
 
-data Seg : Set where
-  stm : Label -> Statement -> Seg
-  seg : Label -> Statement -> Seg -> Seg
-  while cond : Label -> BExpr -> Seg -> Seg
-  cobegin : Label -> Seg -> Seg -> Seg
+a = assignN (nvar N0) (constN N1)
+b = assignN (nvar N1) (constN N2)
+prog1 = composition a b
 
-label : Seg -> Label
-label (stm l _) = l
-label (seg l _ _) = l
-label (while l _ _) = l
-label (cond l _ _) = l
-label (cobegin l _ _) = l
-
-data Program : Set where
-  program : Seg -> Program
-
-
+aaaa = aaa-n (nvar N0) (constN N1)
+aaab = aaa-n (nvar N1) (constN N2)
+term1 = ccf {prog1} {a} {b} aaaa aaab
+-}

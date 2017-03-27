@@ -13,12 +13,9 @@ data Props : Set where
   ¬               : Props -> Props
   _∧_ _∨_ _⊃_     : Props -> Props -> Props
   -- time related
-  at inside after : Label -> Props
+  at inside after : Statement -> Props
   ▢ ◇             : Props -> Props
   _~>_            : Props -> Props -> Props
-  -- program related
-  comp            : Label -> Label -> Props
-  _=cobegin_wit_ : Label -> Label -> Label -> Props
 
 infixl 10 _⊃_
 infixl 15 _~>_
@@ -31,34 +28,34 @@ a ~> b = ▢ (a ⊃ (◇ b))
 -}
 
 -- Section [2]: Rules
-data _⊢_ : Program -> Props -> Set where        -- descriptions of the rules
+data _⊢_ : Statement -> Props -> Set where        -- descriptions of the rules
                                       -- state as an axiom / premise
-  assume  : {prog : Program} ->       (p : Props) ->
+  assume  : {s : Statement} ->        (p : Props) ->
                                       -----------------
-                                      prog ⊢ p
+                                      s ⊢ p
 
   -- Section [2.1]: Conjunction rules
     -- Rule [2.1.1]: conjunction introduction
-  ∧-i     : {prog : Program} ->
+  ∧-i     : {s : Statement} ->
             {p q : Props} ->
-                                      (prog ⊢ p) ->
-                                      (prog ⊢ q) ->
+                                      (s ⊢ p) ->
+                                      (s ⊢ q) ->
                                       ------------
-                                      (prog ⊢ (p ∧ q))
+                                      (s ⊢ (p ∧ q))
 
     -- Rule [2.1.2]: conjunction elimination
-  ∧-e1    : {prog : Program} ->
+  ∧-e1    : {s : Statement} ->
             {p q : Props} ->
-                                      prog ⊢ (p ∧ q) ->
+                                      s ⊢ (p ∧ q) ->
                                       --------------
-                                      prog ⊢ p
+                                      s ⊢ p
 
-  ∧-e2    : {prog : Program} ->
+  ∧-e2    : {s : Statement} ->
             {p q : Props} ->
-                                      prog ⊢ (p ∧ q) ->
+                                      s ⊢ (p ∧ q) ->
                                       --------------
-                                      prog ⊢ q
-  -- Section [2.1337]: Program rules
+                                      s ⊢ q
+  {--- Section [2.1337]: Program rules
     -- Rule [2.1337.1]: Composition introduction
   comp-i : {prog : Program} ->        (a : Label) ->
                                       (b : Label) ->
@@ -72,71 +69,72 @@ data _⊢_ : Program -> Props -> Set where        -- descriptions of the rules
                                       (c : Label) ->
                                       --------------
                                       prog ⊢ (a =cobegin b wit c)
+                                      -}
   -- Section [2.2]: Disjunction rules
     -- Rule [2.2.1]: disjunction introduction
-  ∨-i1    : {prog : Program} ->
+  ∨-i1    : {s : Statement} ->
             {p q : Props} -> 
-                                      prog ⊢ p ->
+                                      s ⊢ p ->
                                       ---------------
-                                      prog ⊢ (p ∨ q)
-  ∨-i2    : {prog : Program} ->
+                                      s ⊢ (p ∨ q)
+  ∨-i2    : {s : Statement} ->
             {p q : Props} -> 
-                                      prog ⊢ q ->
+                                      s ⊢ q ->
                                       ---------------
-                                      prog ⊢ (p ∨ q)
+                                      s ⊢ (p ∨ q)
 
     -- Rule [2.2.2]: disjunctive syllogismp
-  ∨-e1    : {prog : Program} ->
+  ∨-e1    : {s : Statement} ->
             {p q : Props} -> 
-                                      prog ⊢ (p ∨ q) ->
-                                      prog ⊢ (¬ p) ->
+                                      s ⊢ (p ∨ q) ->
+                                      s ⊢ (¬ p) ->
                                       ---------------
-                                      prog ⊢ q
-  ∨-e2    : {prog : Program} ->
+                                      s ⊢ q
+  ∨-e2    : {s : Statement} ->
             {p q : Props} -> 
-                                      prog ⊢ (p ∨ q) ->
-                                      prog ⊢ (¬ q) ->
+                                      s ⊢ (p ∨ q) ->
+                                      s ⊢ (¬ q) ->
                                       ---------------
-                                      prog ⊢ p
+                                      s ⊢ p
     -- Rule [2.2.3]: case anasys
-  ca       : {prog : Program} ->
+  ca       : {s : Statement} ->
               {p q r : Props} ->
-                                      prog ⊢ (p ⊃ r) ->
-                                      prog ⊢ (q ⊃ r) -> 
-                                      prog ⊢ (p ∨ q) ->
+                                      s ⊢ (p ⊃ r) ->
+                                      s ⊢ (q ⊃ r) -> 
+                                      s ⊢ (p ∨ q) ->
                                       ---------------
-                                      prog ⊢ r
+                                      s ⊢ r
     -- Rule [2.2.4]: Constructive dilemma
-  cd       : {prog : Program} ->
-             {p q r v : Props} ->     prog ⊢ (p ⊃ r) ->
-                                      prog ⊢ (q ⊃ v) ->
-                                      prog ⊢ (p ∨ q) ->
+  cd       : {s : Statement} ->
+             {p q r v : Props} ->     s ⊢ (p ⊃ r) ->
+                                      s ⊢ (q ⊃ v) ->
+                                      s ⊢ (p ∨ q) ->
                                       ---------------
-                                      prog ⊢ (r ∨ v)
+                                      s ⊢ (r ∨ v)
 
   -- Section [2.3]: Implication rules
     -- Rule [2.3.1]: implication introduction
-  ⊃-i     : {prog : Program} ->
-            {p : Props} ->            prog ⊢ (p ⊃ p) -- haha wtf? 
+  ⊃-i     : {s : Statement} ->
+            {p : Props} ->            s ⊢ (p ⊃ p) -- haha wtf? 
     -- Rule [2.3.2]: modus ponens (impication elimination)
-  mp      : {prog : Program} ->
-            {p q : Props} ->          prog ⊢ (p ⊃ q) ->
-                                      prog ⊢ p ->
+  mp      : {s : Statement} ->
+            {p q : Props} ->          s ⊢ (p ⊃ q) ->
+                                      s ⊢ p ->
                                       ---------
-                                      prog ⊢ q
+                                      s ⊢ q
     -- Rule [2.3.3]: modus tollens (conditional elimination)
-  mt      : {prog : Program } ->
-            {p q : Props} ->          prog ⊢ (p ⊃ q) ->
-                                      prog ⊢ (¬ q) ->
+  mt      : {s : Statement } ->
+            {p q : Props} ->          s ⊢ (p ⊃ q) ->
+                                      s ⊢ (¬ q) ->
                                       ------------
-                                      prog ⊢ (¬ p)
+                                      s ⊢ (¬ p)
 
     -- Rule [2.3.4]: hypothetical syllogysm (chain rule)
-  hs      : {prog : Program } ->
-            {p q r : Props} ->        prog ⊢ (p ⊃ q) ->
-                                      prog ⊢ (q ⊃ r) ->
+  hs      : {s : Statement} ->
+            {p q r : Props} ->        s ⊢ (p ⊃ q) ->
+                                      s ⊢ (q ⊃ r) ->
                                       ---------------
-                                      prog ⊢ (p ⊃ r)
+                                      s ⊢ (p ⊃ r)
 {-
   -- Section [2.4]: Biconditional rules
     -- Rule [2.4.1]: Biconditional introduction
@@ -199,20 +197,30 @@ data _⊢_ : Program -> Props -> Set where        -- descriptions of the rules
                                       ------------------
                                       -> Rule (at b)
 -}
+      -- Rule [???]: Atomic assignment axiom
+  aaa-n : (x : NVar) ->
+          (n : NExpr) ->                  (assignN x n) ⊢
+                                          ((at (assignN x n)) ~>
+                                          (after (assignN x n)))
+  aaa-b : (p : BVar) ->
+          (b : BExpr) ->                  (assignB p b) ⊢
+                                          ((at (assignB p b)) ~>
+                                          (after (assignB p b)))
     -- Rule [???]: Concatenation control flow, page 472
-  ccf : {prog : Program} -> {a b : Label} ->
-                                      prog ⊢ (at a ~> after a) ->
-                                      prog ⊢ (at b ~> after b) ->
-                                      prog ⊢ (comp a b) ->
-                                      --------------------
-                                      prog ⊢ (at a ~> after b)
+  ccf : {s a b : Statement} ->          a ⊢ (at a ~> after a) ->
+                                        b ⊢ (at b ~> after b) ->
+                                        (composition a b) ⊢
+                                          (at (composition a b) ~>
+                                           after (composition a b) )
     -- Rule [???]: Cobegin control flow
+    {-
   ccf2 : {prog : Program}
          {a b c : Label} ->           prog ⊢ (at b ~> after b) ->
                                       prog ⊢ (at c ~> after c) ->
                                       prog ⊢ (a =cobegin b wit c) ->
                                       ------------------------------
                                       prog ⊢ (at a ~> after a)
+                                      -}
 {-
   ◇-p     : {a b : Props}             -> Rule (◇ a)
                                       -> Rule (a ⊃ b)
@@ -222,6 +230,8 @@ data _⊢_ : Program -> Props -> Set where        -- descriptions of the rules
 
 -}
 
-extract : {prog : Program} -> {p : Props} -> prog ⊢ p -> Props
-extract {prog} {p} _ = p
+extract-ltl : {prog : Statement} -> {p : Props} ->  (prog ⊢ p) -> Props
+extract-ltl {prog} {p} _ = p
 
+extract-stm : {prog : Statement} -> {p : Props} ->  (prog ⊢ p) -> Statement
+extract-stm {prog} {p} _ = prog
