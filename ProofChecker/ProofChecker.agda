@@ -84,17 +84,24 @@ proof1 = proof (r1 ∷ (r2 ∷ (r3 ∷ (r4 ∷ (r5 ∷ [])))))
 
 -}
 
-programLam : Prog
+
+
+
+
+{-programLam : Prog
 programLam = prog main
   where p1 = seg (s 3) < (vB 0) :=b bool false >
         p2 = while (s 4) (bVar (vB 0)) (seg (s 5) < (vN 1) :=n nat 1 >)
         main = block (s 0) ( seg (s 1) < (vB 0) :=b bool true > ∷ (par (s 2) (p1 ∷ (p2 ∷ [])) ∷ []))
 
 c1 : TransRel
-c1 =  < (after (s 2)) > (custom 1) < (□ ((after (s 2)) ∧' ∼ (isTrue 0))) >
+c1 =  < (after (s 3)) > (custom 1) < (□ ((after (s 2)) ∧' ∼ (isTrue 0))) >
 
 c2 : TransRel
-c2 = < after (s 5) > custom 2 < at (s 4) >
+c2 = < after (s 5) > (custom 2) < at (s 4) >
+
+cRuleList : List TransRel
+cRuleList = c1 ∷ (c2 ∷ [])
 
 -- < after (s 2) > (custom 1) < □ ((after (s 2)) ∧' (~ (bVar (vB 0)))) ]
 
@@ -120,7 +127,28 @@ proofLam = proof (r1 ∷ (r2 ∷ (r3 ∷ (r4 ∷ (r5 ∷ (r6 ∷ (r7 ∷ [])))))
     r7-2-1 = pStep (□-e (□ ((at (s 3)) ∧' (∼ (isTrue 0))))) -- at s3 ∧' ~x
     r7-2-2 = pStep (∧'-e1 ((at (s 3)) ∧' (∼ (isTrue 0))))
     r7-2 = r7-2-1 ∷ (r7-2-2 ∷ [])
-    r7 = branch (orRule ((in' (s 4)) ∨' (after (s 4)))) r7-1 r7-2 -- Split in s4 ∨' after s4
+    r7 = branch (orRule ((in' (s 4)) ∨' (after (s 4)))) r7-1 r7-2 -- Split in s4 ∨' after s4-}
+
+--------------------
+
+simpleProg : Prog
+simpleProg = prog main
+  where p1 = seg (s 1) < (vN 0) :=n (nat 0) >
+        p3 = seg (s 3) < (vN 0) :=n (nat 1) >
+        p4 = seg (s 4) < (vN 0) :=n (nat 2) >
+        p2 = par (s 2) (p3 ∷ (p4 ∷ []))
+        main = block (s 0) (p1 ∷ p2 ∷ [])
+
+simpleProof : Proof --Termination, after (s 3 ∧ s 4)
+simpleProof = prf3
+  where r1 = pStep (seqRule (at (s 0))) --at s 1
+        r2 = pStep (assRule (at (s 1))) --at s 2 ∧ vN 0 = 0
+        r3 = pStep (∧'-e1 ((at (s 2)) ∧' (0 EQ 0))) --at s 2
+        r4 = pStep (parRule (at (s 2))) --at s 3 ∧ at s 4
+        r5 = pStep (∧'-e1 ((at (s 3)) ∧' (at (s 4)))) --at s 3
+        prf1 = proof (r1 ∷ (r2 ∷ (r3 ∷ (r4 ∷ (r5 ∷ [])))))
+        prf2 = proof (r1 ∷ (r2 ∷ []))
+        prf3 = proof (r4 ∷ [])
 
 {-# TERMINATING #-}
 
