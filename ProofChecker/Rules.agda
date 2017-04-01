@@ -9,6 +9,7 @@ open import Data.Nat
 open import Label
 open import ValidProof
 open import Data.String as String
+open import Data.Nat.Show as Show
 
 _=='_ : ℕ → ℕ → Bool
 zero ==' zero = true
@@ -55,18 +56,18 @@ pRule (∧'-i x) = "∧'-i"
 pLTL : LTL → String
 pLTL T' = "T'"
 pLTL ⊥ = "⊥"
-pLTL (∼ x) = "(∼ x)"
-pLTL (□ x) = "(□ x)"
-pLTL (◇ x) = "(◇ x)"
-pLTL (x ∧' x₁) = "(x ∧' x₁)"
-pLTL (x ∨' x₁) = "(x ∨' x₁)"
-pLTL (x ⇒ x₁) = "(x ⇒ x₁)"
-pLTL (x ~> x₁) = "(x ~> x₁)"
-pLTL (at x) = "(at x)"
-pLTL (in' x) = "(in' x)"
-pLTL (after x) = "(after x)"
-pLTL (x EQ x₁) = "(x EQ x₁)"
-pLTL (isTrue x) = "(isTrue x)"
+pLTL (∼ x) = "(∼ " String.++ (pLTL x) String.++ ")"
+pLTL (□ x) = "(□ " String.++ (pLTL x) String.++ ")"
+pLTL (◇ x) = "(◇ " String.++ (pLTL x) String.++ ")"
+pLTL (x ∧' x₁) = "(" String.++ (pLTL x) String.++ " ∧' " String.++ (pLTL x₁) String.++ ")"
+pLTL (x ∨' x₁) = "(" String.++ (pLTL x) String.++ " ∨' " String.++ (pLTL x₁) String.++ ")"
+pLTL (x ⇒ x₁) = "(" String.++ (pLTL x) String.++ " ⇒ " String.++ (pLTL x₁) String.++ ")"
+pLTL (x ~> x₁) = "(" String.++ (pLTL x) String.++ " ~≳ " String.++ (pLTL x₁) String.++ ")"
+pLTL (x EQ x₁) = "(" String.++ (Show.show x) String.++ " EQ " String.++ (Show.show x₁) String.++ ")"
+pLTL (at (s x)) = "(at " String.++ (Show.show x) String.++ ")"
+pLTL (in' (s x)) = "(at " String.++ (Show.show x) String.++ ")"
+pLTL (after (s x)) = "(at " String.++ (Show.show x) String.++ ")"
+pLTL (isTrue x) = "(isTrue " String.++ (Show.show x) String.++ ")"
 
 data Ru : LTL → Set where
   id    : (φ : LTL) → Ru φ
@@ -124,10 +125,10 @@ isEq ⊥ ⊥ = true
 isEq (∼ x) (∼ y) = isEq x y
 isEq (□ x) (□ y) = isEq x y
 isEq (◇ x) (◇ y) = isEq x y
-isEq (x₁ ∧' x₂) (y₁ ∧' y₂) = (isEq x₁ y₂) ∧ ((isEq x₁ y₂))
-isEq (x₁ ∨' x₂) (y₁ ∨' y₂) = (isEq x₁ y₂) ∧ ((isEq x₁ y₂))
-isEq (x₁ ⇒ x₂) (y₁ ⇒ y₂) = (isEq x₁ y₂) ∧ ((isEq x₁ y₂))
-isEq (x₁ ~> x₂) (y₁ ~> y₂) = (isEq x₁ y₂) ∧ ((isEq x₁ y₂))
+isEq (x₁ ∧' x₂) (y₁ ∧' y₂) = (isEq x₁ y₁) ∧ ((isEq x₂ y₂))
+isEq (x₁ ∨' x₂) (y₁ ∨' y₂) = (isEq x₁ y₁) ∧ ((isEq x₂ y₂))
+isEq (x₁ ⇒ x₂) (y₁ ⇒ y₂) = (isEq x₁ y₁) ∧ ((isEq x₂ y₂))
+isEq (x₁ ~> x₂) (y₁ ~> y₂) = (isEq x₁ y₁) ∧ ((isEq x₂ y₂))
 isEq (at (s x)) (at (s y)) = x ==' y
 isEq (after (s x)) (after (s y)) = x ==' y
 isEq (x₁ EQ x₂) (y₁ EQ y₂) = ((x₁ ==' y₁)) ∧ (x₂ ==' y₂)
@@ -139,10 +140,10 @@ isEqA par par = true
 isEqA seq sewq = true
 isEqA _ _ = false
 
-legalApplication : List TransRel → Action → LTL → Maybe LTL
-legalApplication [] a l = nothing
+legalApplication : List TransRel → Action → LTL → ValidProof
+legalApplication [] a l = no ((pLTL l) String.++ " not found.")
 legalApplication (todo ∷ ts) a l = legalApplication ts a l
-legalApplication (< pre > a' < post > ∷ ts) a l = if (isEq l pre) ∧ isEqA a a' then just post else legalApplication ts a l
+legalApplication (< pre > a' < post > ∷ ts) a l = if (isEq l pre) ∧ isEqA a a' then yes post else legalApplication ts a l
 
 extAction : Rule → Action
 extAction (assRule _) = assign
@@ -162,6 +163,6 @@ extAction (∧'-i _) = ltl
 
 applyRule : List TransRel → LTL → Rule → ValidProof
 applyRule ts ls r with legalApplication ts (extAction r) (extLTL r)
-... | just post = if isEq (extLTL r) ls then yes post else no eMsg
+... | yes post = if isEq (extLTL r) ls then yes post else no eMsg
   where eMsg = ("The rule " String.++ pRule r String.++ (" could not be applied to the formula: " String.++ pLTL (extLTL r)))
-... | nothing = no "TODO"
+... | err = err 
