@@ -1,6 +1,7 @@
 module ProofChecker where
 
 open import Data.Bool
+open import ValidProof
 open import Data.List
 open import Data.Nat
 open import Props
@@ -9,6 +10,7 @@ open import LTL
 open import Translator
 open import Label
 open import Rules
+open import Function
 
 -- Proof step is a step or a list of steps
 
@@ -126,22 +128,33 @@ proofLam = proof (r1 ∷ (r2 ∷ (r3 ∷ (r4 ∷ (r5 ∷ (r6 ∷ (r7 ∷ [])))))
 
 -- Tries to apply the rule for a step in the proof.
 -- takeStep : Program translation → Proof step → Current truth → Resulting LTL
-takeStep : List TransRel → ProofStep → LTL → LTL
-takeStep prg (pStep r) Γ = applyRule prg Γ r
-takeStep prg (branch r b₁ b₂) Γ = if isEq res1 res2 then res1 else ⊥ -- TODO rule
+takeStep : List TransRel → ProofStep → ValidProof → ValidProof
+takeStep _ _ (no err) = no err
+takeStep prg (pStep r) (yes φ) = applyRule prg φ r
+takeStep prg (branch x b₁ b₂) (yes φ) = case res1 of λ
+  { (yes ψ₁) → case res2 of λ
+    { (yes ψ₂) → if isEq ψ₁ ψ₂ then yes ψ₁ else no "Mismatch of conclusions"
+    ; err → err
+    }
+  ; err  → err
+  }
   where
-    res1 = foldl (λ Γ step → takeStep prg step Γ) Γ b₁
-    res2 = foldl (λ Γ step → takeStep prg step Γ) Γ b₂
+    res1 = foldl (λ Γ step → takeStep prg step Γ) (yes φ) b₁
+    res2 = foldl (λ Γ step → takeStep prg step Γ) (yes φ) b₂
 
 -- Checks whether a given proof holds for a given program.
 -- proofCheck : program → proof → goal → known → Resulting Boolean
-proofCheck' : List TransRel → Proof → LTL → LTL → Bool
-proofCheck' _ _ T' _ = true
-proofCheck' _ _ ⊥ _ = false
-proofCheck' rels pr (□ φ) Γ = false -- TODO add box, maybe prove termination and still holds?
+proofCheck' : List TransRel → Proof → LTL → LTL → ValidProof
+proofCheck' _ _ T' _ = yes T'
+proofCheck' _ _ ⊥ _ = no "Bot?"
+proofCheck' rels pr (□ φ) Γ = no "TODO" -- TODO add box, maybe prove termination and still holds?
 proofCheck' rels pr (φ ⇒ ψ) _ = proofCheck' rels pr ψ φ
-proofCheck' rels (proof stps) (◇ φ) Γ = isEq φ (foldl (λ Γ stp → if isEq ⊥ Γ then ⊥ else takeStep rels stp Γ) Γ stps)
-proofCheck' rels _ φ Γ = isEq φ Γ
+proofCheck' rels (proof stps) (◇ φ) Γ = case res of λ
+  { (yes ψ) → if isEq φ ψ then yes (◇ φ) else no "Wrong conclusion."
+  ; err → err
+  }
+  where res = foldl (λ t stp → takeStep rels stp t) (yes Γ) stps
+proofCheck' rels _ φ Γ = if (isEq φ Γ) then yes φ else no "Not true in the initial state"
 
-proofCheck : Prog → List TransRel → Proof → LTL → LTL → Bool
+proofCheck : Prog → List TransRel → Proof → LTL → LTL → ValidProof
 proofCheck pr rels g Γ = proofCheck' ((translate pr) ++ rels) g Γ
