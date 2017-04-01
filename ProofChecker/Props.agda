@@ -1,11 +1,11 @@
 module Props where
 
-open import Nat
+open import Data.Nat
 
 -- Representation of propositional logic
 
 data Props : Set where
-  T ⊥ : Props
+  T ⊥         : Props
   _∧_ _∨_ _⇒_ : Props → Props → Props
-  p' : Nat → Props
-  ~_ : Props → Props
+  p'          : ℕ → Props
+  ~_          : Props → Props

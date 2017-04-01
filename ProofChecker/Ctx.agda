@@ -1,8 +1,8 @@
 module Ctx where
 
-open import Nat
+open import Data.Nat
 open import Props
 
-data Ctx : Nat → Set where
-  ∅ : Ctx zero
-  _⋆_ : {n : Nat} → Ctx n → Props → Ctx (succ n)
+data Ctx : ℕ → Set where
+  ∅   : Ctx zero
+  _⋆_ : {n : ℕ} → Ctx n → Props → Ctx (suc n)

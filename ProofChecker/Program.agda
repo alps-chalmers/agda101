@@ -1,18 +1,18 @@
 module Program where
 
-open import Lists
-open import Nat
-open import Bool
+open import Data.List
+open import Data.Nat
+open import Data.Bool
 open import Label
 
 data NVar : Set where
-  vN : (i : Nat) → NVar
+  vN : (i : ℕ) → NVar
 
 data BVar : Set where
-  vB : (i : Nat) → BVar
+  vB : (i : ℕ) → BVar
 
 data ExpN : Set where
-  nat : Nat → ExpN
+  nat : ℕ → ExpN
   nVar : NVar → ExpN
 
 data ExpB : Set where
