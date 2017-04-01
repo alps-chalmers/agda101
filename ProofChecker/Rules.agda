@@ -7,12 +7,14 @@ open import Data.Bool
 open import Data.Maybe
 open import Data.Nat
 open import Label
+open import ValidProof
+open import Data.String as String
 
-_==_ : ℕ → ℕ → Bool
-zero == zero = true
-zero == suc y = false
-suc x == zero = false
-suc x == suc y = x == y
+_=='_ : ℕ → ℕ → Bool
+zero ==' zero = true
+zero ==' suc y = false
+suc x ==' zero = false
+suc x ==' suc y = x ==' y
 
 data _⊢_ : LTL → LTL → Set where
 
@@ -33,7 +35,38 @@ data Rule : Set where
   ∧'-e2      : LTL → Rule
   ∧'-i       : LTL → Rule
 
+pRule : Rule → String
+pRule (assRule x) = "assRule"
+pRule (parRule x) = "parRule"
+pRule (seqRule x) = "seqRule"
+pRule (whileRule x) = "whileRule"
+pRule (orRule x) = "orRule"
+pRule (dummy x) = "dummy"
+pRule (inInf x) = "inInf"
+pRule (atomLive x) = "atomLive"
+pRule (customR x x₁) = "customR"
+pRule (exitRule x) = "exitRule"
+pRule (□-e x) = "□-e"
+pRule (∧'-e1 x) = "∧'-e1"
+pRule (∧'-e2 x) = "∧'-e2"
+pRule (∧'-i x) = "∧'-i"
 -- Add action reference
+
+pLTL : LTL → String
+pLTL T' = "T'"
+pLTL ⊥ = "⊥"
+pLTL (∼ x) = "(∼ x)"
+pLTL (□ x) = "(□ x)"
+pLTL (◇ x) = "(◇ x)"
+pLTL (x ∧' x₁) = "(x ∧' x₁)"
+pLTL (x ∨' x₁) = "(x ∨' x₁)"
+pLTL (x ⇒ x₁) = "(x ⇒ x₁)"
+pLTL (x ~> x₁) = "(x ~> x₁)"
+pLTL (at x) = "(at x)"
+pLTL (in' x) = "(in' x)"
+pLTL (after x) = "(after x)"
+pLTL (x EQ x₁) = "(x EQ x₁)"
+pLTL (isTrue x) = "(isTrue x)"
 
 data Ru : LTL → Set where
   id    : (φ : LTL) → Ru φ
@@ -95,9 +128,9 @@ isEq (x₁ ∧' x₂) (y₁ ∧' y₂) = (isEq x₁ y₂) ∧ ((isEq x₁ y₂))
 isEq (x₁ ∨' x₂) (y₁ ∨' y₂) = (isEq x₁ y₂) ∧ ((isEq x₁ y₂))
 isEq (x₁ ⇒ x₂) (y₁ ⇒ y₂) = (isEq x₁ y₂) ∧ ((isEq x₁ y₂))
 isEq (x₁ ~> x₂) (y₁ ~> y₂) = (isEq x₁ y₂) ∧ ((isEq x₁ y₂))
-isEq (at (s x)) (at (s y)) = x == y
-isEq (after (s x)) (after (s y)) = x == y
-isEq (x₁ EQ x₂) (y₁ EQ y₂) = ((x₁ == y₁)) ∧ (x₂ == y₂)
+isEq (at (s x)) (at (s y)) = x ==' y
+isEq (after (s x)) (after (s y)) = x ==' y
+isEq (x₁ EQ x₂) (y₁ EQ y₂) = ((x₁ ==' y₁)) ∧ (x₂ ==' y₂)
 isEq _ _ = false
 
 isEqA : Action → Action → Bool
@@ -127,23 +160,8 @@ extAction (exitRule _ ) = ltl
 extAction (customR n _) = custom n
 extAction (∧'-i _) = ltl
 
-applyRule : List TransRel → LTL → Rule → LTL
+applyRule : List TransRel → LTL → Rule → ValidProof
 applyRule ts ls r with legalApplication ts (extAction r) (extLTL r)
-... | just post = if isEq (extLTL r) ls then post else ⊥
-... | nothing = ⊥
-
-{-}
-applyRule : List TransRel → LTL → Rule → LTL
-applyRule ts ls (assRule φ) with legalApplication ts assign φ
-... | just post = if isEq φ ls then post else ⊥
-... | nothing = ⊥
-applyRule ts ls (parRule φ) with legalApplication ts par φ
-... | just post = if isEq φ ls then post else ⊥
-... | nothing = ⊥
-applyRule ts ls (seqRule φ) with legalApplication ts seq φ
-... | just post = if isEq φ ls then post else ⊥
-... | nothing = ⊥
--- applyRule ts ls (andRule1 (φ ∧' ψ)) = φ
--- applyRule ts ls (andRule2 (φ ∧' ψ)) = ψ
--- applyRule _ _ _ = ⊥
--}
+... | just post = if isEq (extLTL r) ls then yes post else no eMsg
+  where eMsg = ("The rule " String.++ pRule r String.++ (" could not be applied to the formula: " String.++ pLTL (extLTL r)))
+... | nothing = no "TODO"
