@@ -76,7 +76,7 @@ transFlow (if l b se) = < (after (label se)) > flowA < (after l) > ∷ (transFlo
 translate' : Seg → List TransRel
 translate' (seg x stm) = (transStm x stm) ∷ []
 translate' (block l xs) with head xs
-... | just x = (< (at l) > seq < (at (label x)) > ∷ (foldl (λ ls se → (translate' se) ++ ls) [] xs)) ++ (blockTrans xs)
+... | just x = (< (at l) > seq < (at (label x)) > ∷ (foldl (λ ls se → (translate' se) ++ ls) [] xs)) --++ (blockTrans xs)
 ... | _ = []
 translate' (par x xs) = < (at x) > par < (extractLabels xs) > ∷ flatten (List.map (λ x → translate' x) xs)
 translate' (while l (bool x) se) = bCheck ∷ (translate' se)

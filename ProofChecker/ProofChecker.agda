@@ -142,7 +142,7 @@ simpleProg = prog main
         p2 = par (s 2) (p3 ∷ (p4 ∷ []))
         main = block (s 0) (p1 ∷ p2 ∷ [])
 
-simpleProof : Proof --Termination, after (s 3 ∧ s 4)
+{-simpleProof : Proof --Termination, after (s 3 ∧ s 4)
 simpleProof = prf1
   where r1 = pStep (seqRule (at (s 0))) --at s 1
         r2 = pStep (assRule (at (s 1))) --at s 2 ∧ vN 0 = 0
@@ -151,7 +151,14 @@ simpleProof = prf1
         r5 = pStep (∧'-e1 ((at (s 3)) ∧' (at (s 4)))) --at s 3
         prf1 = proof (r1 ∷ (r2 ∷ (r3 ∷ (r4 ∷ (r5 ∷ [])))))
         prf2 = proof (r1 ∷ (r2 ∷ []))
-        prf3 = proof (r4 ∷ [])
+        prf3 = proof (r4 ∷ [])-}
+
+simpleProof : Proof
+simpleProof = prf
+  where r1 = pStep (seqRule (at (s 0))) --at s1
+        r2 = pStep {!!}
+        prf = proof (r1 ∷ [])
+
 
 {-# TERMINATING #-}
 
@@ -187,3 +194,6 @@ proofCheck' rels _ φ Γ = if (isEq φ Γ) then yes φ else no "Not true in the 
 
 proofCheck : Prog → List TransRel → Proof → LTL → LTL → ValidProof
 proofCheck pr rels g Γ = proofCheck' ((translate pr) List.++ rels) g Γ
+
+simplePrfCheck : ValidProof
+simplePrfCheck = proofCheck simpleProg [] simpleProof ((at (s 0)) ⇒ (◇ (at (s 2)))) (at (s 7))
