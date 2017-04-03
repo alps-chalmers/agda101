@@ -55,7 +55,7 @@ flatten xs = foldl (λ x xs₁ → x ++ xs₁) [] xs
 seqFlow : Label → List Seg → List TransRel
 seqFlow p [] = []
 seqFlow p (x ∷ []) = < after (label x) > flowA < after p > ∷ []
-seqFlow p (x ∷ (y ∷ xs)) = < after (label x) > flowA < at (label y) > ∷ (seqFlow p xs)
+seqFlow p (x ∷ (y ∷ xs)) = < after (label x) > flowA < at (label y) > ∷ (seqFlow p (y ∷ xs))
 
 parFlow : List Seg → LTL
 parFlow [] = ⊥
