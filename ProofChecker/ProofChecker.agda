@@ -175,7 +175,7 @@ takeStep prg (branch x b₁ b₂) (yes φ) = case res1 of λ
 -- proofCheck : program → proof → goal → known → Resulting Boolean
 proofCheck' : List TransRel → Proof → LTL → LTL → ValidProof
 proofCheck' _ _ T' _ = yes T'
-proofCheck' _ _ ⊥ _ = no "Bot?"
+proofCheck' _ _ ⊥ _ = no "Bot always false"
 proofCheck' rels pr (□ φ) Γ = no "TODO" -- TODO add box, maybe prove termination and still holds?
 proofCheck' rels pr (φ ⇒ ψ) _ = proofCheck' rels pr ψ φ
 proofCheck' rels (proof stps) (◇ φ) Γ = case res of λ
