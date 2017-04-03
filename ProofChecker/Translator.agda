@@ -18,6 +18,7 @@ data Action : Set where
   inInf  : Action
   □-e    : Action
   ltl    : Action
+  flowA  : Action
   custom : ℕ → Action
 
 data TransRel : Set where
@@ -51,6 +52,25 @@ head (x ∷ xs) = just x
 flatten : {A : Set} → List (List A) → List A
 flatten xs = foldl (λ x xs₁ → x ++ xs₁) [] xs
 
+seqFlow : Label → List Seg → List TransRel
+seqFlow p [] = []
+seqFlow p (x ∷ []) = < after (label x) > flowA < after p > ∷ []
+seqFlow p (x ∷ (y ∷ xs)) = < after (label x) > flowA < at (label y) > ∷ (seqFlow p xs)
+
+parFlow : List Seg → LTL
+parFlow [] = ⊥
+parFlow (x ∷ []) = after (label x)
+parFlow (x ∷ xs) = (after (label x)) ∧' (parFlow xs)
+
+{-# TERMINATING #-}
+
+transFlow : Seg → List TransRel
+transFlow (seg _ _) = []
+transFlow (block se segs) = seqFlow se segs ++ foldl (λ rels se → rels ++ transFlow se) [] segs
+transFlow (par se segs) = < parFlow segs > flowA < after se > ∷ foldl (λ rels se → rels ++ transFlow se) [] segs
+transFlow (while l _ se) = < (after (label se)) > flowA < (at l) > ∷ transFlow se
+transFlow (if l b se) = < (after (label se)) > flowA < (after l) > ∷ (transFlow se)
+
 {-# TERMINATING #-}
 
 translate' : Seg → List TransRel
@@ -66,4 +86,4 @@ translate' (while l (bVar (vB i)) se) = bVarCheck ∷ translate' se
 translate' (if x exp se) = translate' se
 
 translate : Prog → List TransRel
-translate (prog main) = translate' main
+translate (prog main) = translate' main ++ (transFlow main)
