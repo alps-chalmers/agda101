@@ -1,3 +1,6 @@
+{-
+  Contains rules to use when construction proofs. Also has functions to check if rules are used legally
+-}
 module Rules where
 
 open import Translator
@@ -12,13 +15,14 @@ open import Data.String as String
 open import Data.Nat.Show as Show
 open import LTLRule
 
+{-used for convenience simple equal checker for nats-}
 _=='_ : ℕ → ℕ → Bool
 zero ==' zero = true
 zero ==' suc y = false
 suc x ==' zero = false
 suc x ==' suc y = x ==' y
 
--- Index with rule and ltl
+-- Index with rule and ltl. Specifically for proofsteps regarding the program itself
 data ProgRule : LTL → Action → Set where
   assRule   : (φ : LTL) → ProgRule φ assign
   parRule   : (φ : LTL) → ProgRule φ par
@@ -29,12 +33,13 @@ data ProgRule : LTL → Action → Set where
   atomLive  : (φ : LTL) → ProgRule φ flowA
   exitRule  : (φ : LTL) → ProgRule φ while
 
-
+{-our different rules - program rules, ltl-rules and custom rules (forced truths)-}
 data Rule : Set where
   progR   : {a : Action } {φ : LTL} → ProgRule φ a → Rule
   ltlR    : LTLRule → Rule
   customR : ℕ → LTL → LTL → Rule
 
+{-to string for rules-}
 pRule : Rule → String
 pRule (progR (assRule φ)) = "assRule"
 pRule (progR (parRule φ)) = "parRule"
@@ -50,6 +55,7 @@ pRule (ltlR (∨-i₁ x)) = "∨-i₁"
 pRule (ltlR (∨-i₂ x)) = "∨-i₂"
 pRule (customR x x₁ x₂) = "Custom " String.++ Show.show x
 
+{-to string for LTL-}
 pLTL : LTL → String
 pLTL T' = "T'"
 pLTL ⊥ = "⊥"
@@ -66,37 +72,7 @@ pLTL (in' (s x)) = "(in " String.++ (Show.show x) String.++ ")"
 pLTL (after (s x)) = "(after " String.++ (Show.show x) String.++ ")"
 pLTL (isTrue x) = "(isTrue " String.++ (Show.show x) String.++ ")"
 
-data Ru : LTL → Set where
-  id    : (φ : LTL) → Ru φ
-  ∧'-i   : {φ ψ : LTL} → Ru φ → Ru ψ → Ru (φ ∧' ψ)
-  ∧'-e₁  : {φ ψ : LTL} → Ru (φ ∧' ψ) → Ru φ
-  inInf : {l : Label} → Ru (in' l) → Ru ((at l) ∨' (after l))
-
-data Valid : Set where
-  yes : {φ : LTL} → Ru φ → Valid
-  no  : Valid -- TODO Add error' message
-
-extract : {φ : LTL} → Ru φ → LTL
-extract {φ} _ = φ
-
-f : (φ : LTL) → Ru φ
-f x = id x
-
-r-∧'-i : {φ ψ : LTL} → Ru (φ) → Ru (ψ) → Valid
-r-∧'-i r₁ r₂ = yes (∧'-i r₁ r₂)
-
-r-∧'-e₁ : LTL → Valid
-r-∧'-e₁ (φ ∧' ψ) = yes (∧'-e₁ (id (φ ∧' ψ)))
-r-∧'-e₁ _ = no
-
-
-test : Valid
-test = r-∧'-e₁ (extract (id (at (s 0))))
-
-r-inInf : LTL → Valid
-r-inInf (in' l) = yes (inInf (id (in' l)))
-r-inInf _ = no
-
+{-Checks if LTL statements are identical-}
 isEq : (φ : LTL) → (ψ : LTL) → Bool
 isEq T' T' = true
 isEq ⊥ ⊥ = true
@@ -112,6 +88,7 @@ isEq (after (s x)) (after (s y)) = x ==' y
 isEq (x₁ EQ x₂) (y₁ EQ y₂) = ((x₁ ==' y₁)) ∧ (x₂ ==' y₂)
 isEq _ _ = false
 
+{-Checks if actions are identical-}
 isEqA : Action → Action → Bool
 isEqA assign assign = true
 isEqA par par = true
@@ -125,13 +102,13 @@ isEqA flowA flowA = true
 isEqA (custom x) (custom y) = x ==' y
 isEqA _ _ = false
 
+{-Checks if a program rule is applied in a legal way-}
 legalApplication : {φ : LTL} {a : Action} → List TransRel → LTL → ProgRule φ a → ValidProof
 legalApplication {φ} {a} [] ψ pr = no ((pLTL φ) String.++ " not found.")
 legalApplication {a} (todo ∷ rels) ψ pr = legalApplication rels ψ pr
 legalApplication {φ} {a} (< pre > a' < post > ∷ rels) ψ pr = if isEq pre ψ ∧ isEqA a a' then yes post else legalApplication rels ψ pr
---legalApplication {φ} {a} (< pre > a' < post > ∷ rels) ψ pr = if isEq pre ψ ∧ isEqA a a' then yes post else legalApplication rels ψ pr
 
-
+{-Checks if an LTL-rule is applied in a legal way-}
 applyLTL-R : LTL → LTLRule → ValidProof
 applyLTL-R (φ ∧' ψ) ∧-e₁ = yes φ
 applyLTL-R (φ ∧' ψ) ∧-e₂ = yes ψ
@@ -139,6 +116,7 @@ applyLTL-R φ (∨-i₁ ψ) = yes (ψ ∨' φ)
 applyLTL-R φ (∨-i₂ ψ) = yes (φ ∨' ψ)
 applyLTL-R _ _ = no "Incorrect LTL application."
 
+{-General application function. Takes a translated program, a thruth and a rule. Returns if it is a Valid proof-}
 applyRule : List TransRel → LTL → Rule → ValidProof
 applyRule ts φ (progR x) = legalApplication ts φ x
 applyRule ts φ (ltlR r) = applyLTL-R φ r
