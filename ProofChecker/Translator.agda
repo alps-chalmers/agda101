@@ -20,11 +20,8 @@ data Action : Set where
   par    : Action
   while  : Action
   or'    : Action
-  dummy  : Action
   inInf  : Action
-  □-e    : Action
   flowA  : Action
-  custom : ℕ → Action
 
 {-
   Represents transition relations, < pre > action < post >, where pre is the

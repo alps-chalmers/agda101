@@ -95,16 +95,13 @@ isEqA par par = true
 isEqA seq seq = true
 isEqA while while = true
 isEqA or' or' = true
-isEqA dummy dummy = true
 isEqA inInf inInf = true
-isEqA □-e □-e = true
 isEqA flowA flowA = true
-isEqA (custom x) (custom y) = x ==' y
 isEqA _ _ = false
 
 {-Checks if a program rule is applied in a legal way-}
 legalApplication : {φ : LTL} {a : Action} → List TransRel → LTL → ProgRule φ a → ValidProof
-legalApplication {φ} {a} [] ψ pr = no ((pLTL φ) String.++ " not found.")
+legalApplication {φ} {a} [] ψ pr = no ((pLTL φ) String.++ " not found when applying " String.++ (pRule (progR pr)) String.++ " to " String.++ (pLTL ψ))
 legalApplication {a} (todo ∷ rels) ψ pr = legalApplication rels ψ pr
 legalApplication {φ} {a} (< pre > a' < post > ∷ rels) ψ pr = if isEq pre ψ ∧ isEqA a a' then yes post else legalApplication rels ψ pr
 
@@ -114,10 +111,11 @@ applyLTL-R (φ ∧' ψ) ∧-e₁ = yes φ
 applyLTL-R (φ ∧' ψ) ∧-e₂ = yes ψ
 applyLTL-R φ (∨-i₁ ψ) = yes (ψ ∨' φ)
 applyLTL-R φ (∨-i₂ ψ) = yes (φ ∨' ψ)
-applyLTL-R _ _ = no "Incorrect LTL application."
+applyLTL-R φ r = no ((pRule (ltlR r)) String.++ " cannot be applied to " String.++ (pLTL φ))
 
 {-General application function. Takes a translated program, a thruth and a rule. Returns if it is a Valid proof-}
 applyRule : List TransRel → LTL → Rule → ValidProof
 applyRule ts φ (progR x) = legalApplication ts φ x
 applyRule ts φ (ltlR r) = applyLTL-R φ r
-applyRule ts φ (customR n pre post) = if (isEq pre φ) then yes post else no ("The custom rule could not be applied")
+applyRule ts φ (customR n pre post) = if (isEq pre φ) then yes post else no err
+  where err = "The custom rule " String.++ (pRule (customR n pre post)) String.++ " cannot be applied to" String.++ (pLTL φ)
