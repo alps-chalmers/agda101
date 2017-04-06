@@ -22,7 +22,7 @@ suc x ==' suc y = x ==' y
 data ProgRule : LTL → Action → Set where
   assRule   : (φ : LTL) → ProgRule φ assign
   parRule   : (φ : LTL) → ProgRule φ par
-  seqRule   : (φ : LTL) → ProgRule φ flowA
+  seqRule   : (φ : LTL) → ProgRule φ seq
   whileRule : (φ : LTL) → ProgRule φ while
   orRule    : (φ : LTL) → ProgRule φ or'
   inInf     : (φ : LTL) → ProgRule φ while
@@ -129,6 +129,7 @@ legalApplication : {φ : LTL} {a : Action} → List TransRel → LTL → ProgRul
 legalApplication {φ} {a} [] ψ pr = no ((pLTL φ) String.++ " not found.")
 legalApplication {a} (todo ∷ rels) ψ pr = legalApplication rels ψ pr
 legalApplication {φ} {a} (< pre > a' < post > ∷ rels) ψ pr = if isEq pre ψ ∧ isEqA a a' then yes post else legalApplication rels ψ pr
+--legalApplication {φ} {a} (< pre > a' < post > ∷ rels) ψ pr = if isEq pre ψ ∧ isEqA a a' then yes post else legalApplication rels ψ pr
 
 
 applyLTL-R : LTL → LTLRule → ValidProof

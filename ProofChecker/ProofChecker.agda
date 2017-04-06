@@ -146,12 +146,14 @@ simpleProg = prog main
 simpleProof : Proof
 simpleProof = prf
   where r1 = pStep (progR (seqRule (at (s 0)))) -- at s1
-        r2 = pStep (progR (seqRule (at (s 1)))) -- at s2
-        r3 = pStep (progR (parRule (at (s 2)))) -- at s3 ∧ at s4
-        r4 = pStep (ltlR ∧-e₁) -- at s3
-        r5 = pStep (progR (assRule (at (s 3)))) -- after s3 ∧ x == 1
-        r6 = pStep (ltlR ∧-e₂) -- x == 1
-        prf = proof (r1 ∷ (r2 ∷ (r3 ∷ r4 ∷ (r5 ∷ (r6 ∷ []))))) -- proof of ◇ x == 1
+        r2 = pStep (progR (assRule (at (s 1)))) -- after s1 ∧ 0 EQ 0
+        r3 = pStep (ltlR (∧-e₁)) -- after s1
+        r4 = pStep (progR (atomLive (after (s 1)))) --at s2
+        r5 = pStep (progR (parRule (at (s 2)))) --at s3 ∧ at s4
+        r6 = pStep (ltlR ∧-e₁) --at s3
+        r7 = pStep (progR (assRule (at (s 3)))) --after s3 ∧ 0 EQ 1
+        r8 = pStep (ltlR (∧-e₂)) --0 EQ 1
+        prf = proof (r1 ∷ (r2 ∷ (r3 ∷ (r4 ∷ r5 ∷ (r6 ∷ r7 ∷ (r8 ∷ [])))))) --0 EQ 1
 
 
 {-# TERMINATING #-}
@@ -190,4 +192,4 @@ proofCheck : Prog → List TransRel → Proof → LTL → LTL → ValidProof
 proofCheck pr rels g Γ = proofCheck' ((translate pr) List.++ rels) g Γ
 
 simplePrfCheck : ValidProof
-simplePrfCheck = proofCheck simpleProg [] simpleProof ((at (s 0)) ⇒ (◇ (0 EQ 1))) (at (s 7))
+simplePrfCheck = proofCheck simpleProg [] simpleProof ((at (s 0)) ⇒ (◇ (0 EQ 2))) (at (s 7))

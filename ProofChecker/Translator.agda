@@ -26,7 +26,7 @@ data TransRel : Set where
 
 transStm : Label → Stm → TransRel
 transStm l < x >:=n< x₁ > = todo
-transStm l < (vN x) :=n nat n > = < (at l) > assign < (x EQ n) >
+transStm l < (vN x) :=n nat n > = < (at l) > assign < (after l) ∧' (x EQ n) >
 transStm l < x :=n nVar x₁ > = todo
 transStm l < x >:=b< x₁ > = todo
 transStm l < vB i :=b bool x₁ > = < (at l) > assign < ((after l) ∧' ((if x₁ then (isTrue i) else ∼ (isTrue i)))) >
