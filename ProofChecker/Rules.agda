@@ -125,10 +125,10 @@ isEqA flowA flowA = true
 isEqA (custom x) (custom y) = x ==' y
 isEqA _ _ = false
 
-legalApplication : {φ : LTL} {a : Action} → List TransRel → ProgRule φ a → ValidProof
-legalApplication {φ} {a} [] pr = no ((pLTL φ) String.++ " not found.")
-legalApplication {a} (todo ∷ rels) pr = legalApplication rels pr
-legalApplication {φ} {a} (< pre > a' < post > ∷ rels) pr = if isEq pre φ ∧ isEqA a a' then yes post else legalApplication rels pr
+legalApplication : {φ : LTL} {a : Action} → List TransRel → LTL → ProgRule φ a → ValidProof
+legalApplication {φ} {a} [] ψ pr = no ((pLTL φ) String.++ " not found.")
+legalApplication {a} (todo ∷ rels) ψ pr = legalApplication rels ψ pr
+legalApplication {φ} {a} (< pre > a' < post > ∷ rels) ψ pr = if isEq pre ψ ∧ isEqA a a' then yes post else legalApplication rels ψ pr
 
 
 applyLTL-R : LTL → LTLRule → ValidProof
@@ -139,6 +139,6 @@ applyLTL-R φ (∨-i₂ ψ) = yes (φ ∨' ψ)
 applyLTL-R _ _ = no "Incorrect LTL application."
 
 applyRule : List TransRel → LTL → Rule → ValidProof
-applyRule ts φ (progR x) = legalApplication ts x
+applyRule ts φ (progR x) = legalApplication ts φ x
 applyRule ts φ (ltlR r) = applyLTL-R φ r
 applyRule ts φ (customR n pre post) = if (isEq pre φ) then yes post else no ("The custom rule could not be applied")
