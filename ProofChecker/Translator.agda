@@ -17,7 +17,6 @@ data Action : Set where
   dummy  : Action
   inInf  : Action
   □-e    : Action
-  ltl    : Action
   flowA  : Action
   custom : ℕ → Action
 
@@ -38,12 +37,6 @@ extractLabels : List Seg → LTL
 extractLabels [] = ⊥
 extractLabels (se ∷ []) = at (label se)
 extractLabels (se ∷ segs) = (at (label se)) ∧' extractLabels segs
-
--- Builds the relationship between statements of blocks.
-blockTrans : List Seg → List TransRel
-blockTrans [] = []
-blockTrans (x ∷ []) = [] -- Add fin?
-blockTrans (x ∷ y ∷ ls) = < (after (label x)) > seq < (at (label y)) > ∷ (blockTrans (y ∷ ls))
 
 head : {A : Set} → List A → Maybe A
 head [] = nothing
@@ -76,7 +69,7 @@ transFlow (if l b se) = < (after (label se)) > flowA < (after l) > ∷ (transFlo
 translate' : Seg → List TransRel
 translate' (seg x stm) = (transStm x stm) ∷ []
 translate' (block l xs) with head xs
-... | just x = (< (at l) > seq < (at (label x)) > ∷ (foldl (λ ls se → (translate' se) ++ ls) [] xs)) --++ (blockTrans xs)
+... | just x = (< (at l) > seq < (at (label x)) > ∷ (foldl (λ ls se → (translate' se) ++ ls) [] xs))
 ... | _ = []
 translate' (par x xs) = < (at x) > par < (extractLabels xs) > ∷ flatten (List.map (λ x → translate' x) xs)
 translate' (while l (bool x) se) = bCheck ∷ (translate' se)

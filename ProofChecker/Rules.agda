@@ -10,6 +10,7 @@ open import Label
 open import ValidProof
 open import Data.String as String
 open import Data.Nat.Show as Show
+open import LTLRule
 
 _=='_ : ℕ → ℕ → Bool
 zero ==' zero = true
@@ -17,41 +18,37 @@ zero ==' suc y = false
 suc x ==' zero = false
 suc x ==' suc y = x ==' y
 
-data _⊢_ : LTL → LTL → Set where
-
 -- Index with rule and ltl
+data ProgRule : LTL → Action → Set where
+  assRule   : (φ : LTL) → ProgRule φ assign
+  parRule   : (φ : LTL) → ProgRule φ par
+  seqRule   : (φ : LTL) → ProgRule φ flowA
+  whileRule : (φ : LTL) → ProgRule φ while
+  orRule    : (φ : LTL) → ProgRule φ or'
+  inInf     : (φ : LTL) → ProgRule φ while
+  atomLive  : (φ : LTL) → ProgRule φ flowA
+  exitRule  : (φ : LTL) → ProgRule φ while
+
+
 data Rule : Set where
-  assRule   : LTL → Rule
-  parRule   : LTL → Rule
-  seqRule   : LTL → Rule
-  whileRule : LTL → Rule
-  orRule    : LTL → Rule
-  dummy     : LTL → Rule
-  inInf     : LTL → Rule
-  atomLive  : LTL → Rule
-  customR   :  ℕ → LTL → Rule
-  exitRule  : LTL → Rule
-  □-e       : LTL → Rule
-  ∧'-e1      : LTL → Rule
-  ∧'-e2      : LTL → Rule
-  ∧'-i       : LTL → Rule
+  progR   : {a : Action } {φ : LTL} → ProgRule φ a → Rule
+  ltlR    : LTLRule → Rule
+  customR : ℕ → LTL → LTL → Rule
 
 pRule : Rule → String
-pRule (assRule x) = "assRule"
-pRule (parRule x) = "parRule"
-pRule (seqRule x) = "seqRule"
-pRule (whileRule x) = "whileRule"
-pRule (orRule x) = "orRule"
-pRule (dummy x) = "dummy"
-pRule (inInf x) = "inInf"
-pRule (atomLive x) = "atomLive"
-pRule (customR x x₁) = "customR"
-pRule (exitRule x) = "exitRule"
-pRule (□-e x) = "□-e"
-pRule (∧'-e1 x) = "∧'-e1"
-pRule (∧'-e2 x) = "∧'-e2"
-pRule (∧'-i x) = "∧'-i"
--- Add action reference
+pRule (progR (assRule φ)) = "assRule"
+pRule (progR (parRule φ)) = "parRule"
+pRule (progR (seqRule φ)) = "seqRule"
+pRule (progR (whileRule φ)) = "whileRule"
+pRule (progR (orRule φ)) = "orRule"
+pRule (progR (inInf φ)) = "inInf"
+pRule (progR (atomLive φ)) = "atomLive"
+pRule (progR (exitRule φ)) = "exitRule"
+pRule (ltlR ∧-e₁) = "∧-e₁"
+pRule (ltlR ∧-e₂) = "∧-e₂"
+pRule (ltlR (∨-i₁ x)) = "∨-i₁"
+pRule (ltlR (∨-i₂ x)) = "∨-i₂"
+pRule (customR x x₁ x₂) = "Custom " String.++ Show.show x
 
 pLTL : LTL → String
 pLTL T' = "T'"
@@ -65,8 +62,8 @@ pLTL (x ⇒ x₁) = "(" String.++ (pLTL x) String.++ " ⇒ " String.++ (pLTL x�
 pLTL (x ~> x₁) = "(" String.++ (pLTL x) String.++ " ~≳ " String.++ (pLTL x₁) String.++ ")"
 pLTL (x EQ x₁) = "(" String.++ (Show.show x) String.++ " EQ " String.++ (Show.show x₁) String.++ ")"
 pLTL (at (s x)) = "(at " String.++ (Show.show x) String.++ ")"
-pLTL (in' (s x)) = "(at " String.++ (Show.show x) String.++ ")"
-pLTL (after (s x)) = "(at " String.++ (Show.show x) String.++ ")"
+pLTL (in' (s x)) = "(in " String.++ (Show.show x) String.++ ")"
+pLTL (after (s x)) = "(after " String.++ (Show.show x) String.++ ")"
 pLTL (isTrue x) = "(isTrue " String.++ (Show.show x) String.++ ")"
 
 data Ru : LTL → Set where
@@ -96,28 +93,9 @@ r-∧'-e₁ _ = no
 test : Valid
 test = r-∧'-e₁ (extract (id (at (s 0))))
 
-{-test : (φ : LTL) → Ru (φ ∧' φ)
-test x = r-∧'-i (id x) (id x)-}
-
 r-inInf : LTL → Valid
 r-inInf (in' l) = yes (inInf (id (in' l)))
 r-inInf _ = no
-
-extLTL : Rule → LTL
-extLTL (assRule φ) = φ
-extLTL (parRule φ) = φ
-extLTL (seqRule φ) = φ
-extLTL (whileRule φ) = φ
-extLTL (orRule φ) = φ
-extLTL (dummy φ) = φ
-extLTL (inInf φ) = φ
-extLTL (□-e φ) = φ
-extLTL (∧'-e1 φ) = φ
-extLTL (∧'-e2 φ) = φ
-extLTL (customR _ φ) = φ
-extLTL (atomLive φ) = φ
-extLTL (exitRule φ) = φ
-extLTL (∧'-i φ) = φ
 
 isEq : (φ : LTL) → (ψ : LTL) → Bool
 isEq T' T' = true
@@ -137,32 +115,30 @@ isEq _ _ = false
 isEqA : Action → Action → Bool
 isEqA assign assign = true
 isEqA par par = true
-isEqA seq sewq = true
+isEqA seq seq = true
+isEqA while while = true
+isEqA or' or' = true
+isEqA dummy dummy = true
+isEqA inInf inInf = true
+isEqA □-e □-e = true
+isEqA flowA flowA = true
+isEqA (custom x) (custom y) = x ==' y
 isEqA _ _ = false
 
-legalApplication : List TransRel → Action → LTL → ValidProof
-legalApplication [] a l = no ((pLTL l) String.++ " not found.")
-legalApplication (todo ∷ ts) a l = legalApplication ts a l
-legalApplication (< pre > a' < post > ∷ ts) a l = if (isEq l pre) ∧ isEqA a a' then yes post else legalApplication ts a l
+legalApplication : {φ : LTL} {a : Action} → List TransRel → ProgRule φ a → ValidProof
+legalApplication {φ} {a} [] pr = no ((pLTL φ) String.++ " not found.")
+legalApplication {a} (todo ∷ rels) pr = legalApplication rels pr
+legalApplication {φ} {a} (< pre > a' < post > ∷ rels) pr = if isEq pre φ ∧ isEqA a a' then yes post else legalApplication rels pr
 
-extAction : Rule → Action
-extAction (assRule _) = assign
-extAction (parRule _) = par
-extAction (seqRule _) = seq
-extAction (whileRule _) = while
-extAction (orRule _) = or'
-extAction (dummy _) = dummy
-extAction (inInf _) = inInf
-extAction (□-e _) = □-e
-extAction (∧'-e1 _) = ltl
-extAction (∧'-e2 _) = ltl
-extAction (atomLive _) = ltl
-extAction (exitRule _ ) = ltl
-extAction (customR n _) = custom n
-extAction (∧'-i _) = ltl
+
+applyLTL-R : LTL → LTLRule → ValidProof
+applyLTL-R (φ ∧' ψ) ∧-e₁ = yes φ
+applyLTL-R (φ ∧' ψ) ∧-e₂ = yes ψ
+applyLTL-R φ (∨-i₁ ψ) = yes (ψ ∨' φ)
+applyLTL-R φ (∨-i₂ ψ) = yes (φ ∨' ψ)
+applyLTL-R _ _ = no "Incorrect LTL application."
 
 applyRule : List TransRel → LTL → Rule → ValidProof
-applyRule ts ls r with legalApplication ts (extAction r) (extLTL r)
-... | yes post = if isEq (extLTL r) ls then yes post else no eMsg
-  where eMsg = ("The rule " String.++ pRule r String.++ (" could not be applied to the formula: " String.++ pLTL (extLTL r)))
-... | err = err 
+applyRule ts φ (progR x) = legalApplication ts x
+applyRule ts φ (ltlR r) = applyLTL-R φ r
+applyRule ts φ (customR n pre post) = if (isEq pre φ) then yes post else no ("The custom rule could not be applied")
