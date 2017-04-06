@@ -25,9 +25,6 @@ data ProofStep : Set where
   pStep : Rule → ProofStep
   branch : Rule → List ProofStep → List ProofStep → ProofStep
 
-data PStep : Set where
-  pStep2 : {φ : LTL} → Ru φ → PStep
-
 data Proof : Set where
   proof : List ProofStep → Proof
 
