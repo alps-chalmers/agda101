@@ -1,8 +1,10 @@
 {-
-  Contains rules to use when construction proofs. Also has functions to check if rules are used legally
+  Contains rules to use when construction proofs. Also has functions to check if
+  rules are used legally. Used in ProofChecker
 -}
 module Rules where
 
+{-***** imported modules *****-}
 open import Translator
 open import LTL
 open import Data.List
@@ -14,32 +16,47 @@ open import ValidProof
 open import Data.String as String
 open import Data.Nat.Show as Show
 open import LTLRule
+{-****************************-}
 
-{-used for convenience simple equal checker for nats-}
+{-
+  Used for convenience, simple equal checker for ℕ, self explanatory
+-}
 _=='_ : ℕ → ℕ → Bool
 zero ==' zero = true
 zero ==' suc y = false
 suc x ==' zero = false
 suc x ==' suc y = x ==' y
 
--- Index with rule and ltl. Specifically for proofsteps regarding the program itself
+{-
+  Data type for program rules, indexed with rule and ltl. Specifically for 
+  proofsteps regarding the programs
+-}
 data ProgRule : LTL → Action → Set where
-  assRule   : (φ : LTL) → ProgRule φ assign
-  parRule   : (φ : LTL) → ProgRule φ par
-  seqRule   : (φ : LTL) → ProgRule φ seq
-  whileRule : (φ : LTL) → ProgRule φ while
-  orRule    : (φ : LTL) → ProgRule φ or'
-  inInf     : (φ : LTL) → ProgRule φ while
-  atomLive  : (φ : LTL) → ProgRule φ flowA
-  exitRule  : (φ : LTL) → ProgRule φ while
+  assRule   : (φ : LTL) → ProgRule φ assign  -- Assignment rule
+  parRule   : (φ : LTL) → ProgRule φ par     -- Parallel rule
+  seqRule   : (φ : LTL) → ProgRule φ seq     -- Sequential rule, used for
+                                             -- entering non-basic segments (see
+                                             -- Program)
+  whileRule : (φ : LTL) → ProgRule φ while   -- While loop rule
+  orRule    : (φ : LTL) → ProgRule φ or'     -- Or rule, used when making a
+                                             -- branch
+  inInf     : (φ : LTL) → ProgRule φ while   -- TODO
+  atomLive  : (φ : LTL) → ProgRule φ flowA   -- Atomic liveness rule used to
+                                             -- control progression
+  exitRule  : (φ : LTL) → ProgRule φ while   -- Used when leaving a while loop
 
-{-our different rules - program rules, ltl-rules and custom rules (forced truths)-}
+{-
+  our different rules - program rules, ltl-rules and custom rules (forced 
+  truths)
+-}
 data Rule : Set where
-  progR   : {a : Action } {φ : LTL} → ProgRule φ a → Rule
-  ltlR    : LTLRule → Rule
-  customR : ℕ → LTL → LTL → Rule
+  progR   : {a : Action } {φ : LTL} → ProgRule φ a → Rule  -- Program rule
+  ltlR    : LTLRule → Rule                                 -- LTL rule
+  customR : ℕ → LTL → LTL → Rule                           -- Custom rule
 
-{-to string for rules-}
+{-
+  To-string for rules, self explanatory
+-}
 pRule : Rule → String
 pRule (progR (assRule φ)) = "assRule"
 pRule (progR (parRule φ)) = "parRule"
@@ -55,7 +72,9 @@ pRule (ltlR (∨-i₁ x)) = "∨-i₁"
 pRule (ltlR (∨-i₂ x)) = "∨-i₂"
 pRule (customR x x₁ x₂) = "Custom " String.++ Show.show x
 
-{-to string for LTL-}
+{-
+  to string for LTL formulae, self explanatory
+-}
 pLTL : LTL → String
 pLTL T' = "T'"
 pLTL ⊥ = "⊥"
@@ -72,7 +91,9 @@ pLTL (in' (s x)) = "(in " String.++ (Show.show x) String.++ ")"
 pLTL (after (s x)) = "(after " String.++ (Show.show x) String.++ ")"
 pLTL (isTrue x) = "(isTrue " String.++ (Show.show x) String.++ ")"
 
-{-Checks if LTL statements are identical-}
+{-
+  Checks if LTL statements are identical, self explanatory
+-}
 isEq : (φ : LTL) → (ψ : LTL) → Bool
 isEq T' T' = true
 isEq ⊥ ⊥ = true
@@ -88,7 +109,9 @@ isEq (after (s x)) (after (s y)) = x ==' y
 isEq (x₁ EQ x₂) (y₁ EQ y₂) = ((x₁ ==' y₁)) ∧ (x₂ ==' y₂)
 isEq _ _ = false
 
-{-Checks if actions are identical-}
+{-
+  Checks if actions are identical, self explanatory
+-}
 isEqA : Action → Action → Bool
 isEqA assign assign = true
 isEqA par par = true
@@ -99,23 +122,44 @@ isEqA inInf inInf = true
 isEqA flowA flowA = true
 isEqA _ _ = false
 
-{-Checks if a program rule is applied in a legal way-}
+{-
+  Checks if a program rule is applied in a legal way
+  legalApplication : program translation → LTL formula → rule to apply on the
+  LTL formula → valid proof
+-}
 legalApplication : {φ : LTL} {a : Action} → List TransRel → LTL → ProgRule φ a → ValidProof
 legalApplication {φ} {a} [] ψ pr = no ((pLTL φ) String.++ " not found when applying " String.++ (pRule (progR pr)) String.++ " to " String.++ (pLTL ψ))
+  -- If passed an empty program, return that it's invalid with an error message
 legalApplication {a} (todo ∷ rels) ψ pr = legalApplication rels ψ pr
+  -- If a placeholder is in the translation, continue
 legalApplication {φ} {a} (< pre > a' < post > ∷ rels) ψ pr = if isEq pre ψ ∧ isEqA a a' then yes post else legalApplication rels ψ pr
+  -- If a triple (see Translator) is in the translation, its precondition is
+  -- identical to the LTL formula and its action is identical to the rule's
+  -- action, return that it's a valid proof for the postcondition. Else continue
 
-{-Checks if an LTL-rule is applied in a legal way-}
+{-
+  Checks if an LTL-rule is applied in a legal way
+  applyLTL-R : LTL formula → LTL rule → valid proof
+-}
 applyLTL-R : LTL → LTLRule → ValidProof
-applyLTL-R (φ ∧' ψ) ∧-e₁ = yes φ
-applyLTL-R (φ ∧' ψ) ∧-e₂ = yes ψ
-applyLTL-R φ (∨-i₁ ψ) = yes (ψ ∨' φ)
-applyLTL-R φ (∨-i₂ ψ) = yes (φ ∨' ψ)
-applyLTL-R φ r = no ((pRule (ltlR r)) String.++ " cannot be applied to " String.++ (pLTL φ))
+applyLTL-R (φ ∧' ψ) ∧-e₁ = yes φ      -- and elimination (see LTLRules)
+applyLTL-R (φ ∧' ψ) ∧-e₂ = yes ψ      -- and elimination (see LTLRules)
+applyLTL-R φ (∨-i₁ ψ) = yes (ψ ∨' φ)  -- or insertion (see LTLRules)
+applyLTL-R φ (∨-i₂ ψ) = yes (φ ∨' ψ)  -- or insertion (see LTLRules)
+applyLTL-R φ r = no ((pRule (ltlR r)) String.++ " cannot be applied to " String.++ (pLTL φ))                          -- anything else is invalid with a message
 
-{-General application function. Takes a translated program, a thruth and a rule. Returns if it is a Valid proof-}
+{-
+  General application function. Takes a translated program, a thruth and a rule.
+  Returns if it is a Valid proof
+-}
 applyRule : List TransRel → LTL → Rule → ValidProof
 applyRule ts φ (progR x) = legalApplication ts φ x
+  -- If the passed rule is a program rule, pass on to legalApplication and
+  -- return the result
 applyRule ts φ (ltlR r) = applyLTL-R φ r
+  -- If the passed rule is an LTL rule, pass on to applyLTL-R and rreturn the
+  -- result
 applyRule ts φ (customR n pre post) = if (isEq pre φ) then yes post else no err
   where err = "The custom rule " String.++ (pRule (customR n pre post)) String.++ " cannot be applied to" String.++ (pLTL φ)
+  -- If the passed rule is a custom rule and if the precondition of the rule and
+  -- the true LTL are identical, return that it's valid, else that it's invalid

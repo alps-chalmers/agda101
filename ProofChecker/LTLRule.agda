@@ -1,10 +1,16 @@
+{-
+  LTL-rules, used when making a proofstep (see ProofChecker) that is regarding
+  an LTL formulae.
+-}
+
+{-***** imported modules *****-}
 module LTLRule where
-
 open import LTL
-open import ValidProof
+{-****************************-}
 
+-- The LTL-rule data type
 data LTLRule : Set where
-  ∧-e₁  : LTLRule
-  ∧-e₂  : LTLRule
-  ∨-i₁  : LTL → LTLRule
-  ∨-i₂  : LTL → LTLRule
+  ∧-e₁  : LTLRule        -- and-elimination on first element
+  ∧-e₂  : LTLRule        -- and-elimination on second element
+  ∨-i₁  : LTL → LTLRule  -- or-elimination on first element
+  ∨-i₂  : LTL → LTLRule  -- or-elimination on second element
