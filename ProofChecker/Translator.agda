@@ -33,7 +33,6 @@ data Action : Set where
   program statement, and post the postcondition of the statement.
 -}
 data TransRel : Set where
-  todo    : TransRel                                     -- Placeholder
   <_>_<_> : (c₁ : LTL) → Action → (c₂ : LTL) → TransRel  -- Hoare-style Triple
 
 {-
@@ -42,13 +41,10 @@ data TransRel : Set where
     * Stm: The program statement.
 -}
 transStm : Label → Stm → TransRel
-transStm l < x >:=n< x₁ > = todo
-transStm l < (vN x) :=n nat n > = < (at l) > assign < (after l) ∧' (x EQ n) >
-transStm l < x :=n nVar x₁ > = todo
-transStm l < x >:=b< x₁ > = todo
-transStm l < vB i :=b bool x₁ > = < (at l) > assign < ((after l) ∧' ((if x₁ then (isTrue i) else ∼ (isTrue i)))) >
-transStm l < x :=b bVar x₁ > = todo
-transStm l (wait x) = todo
+transStm l < (vN x) :=n n > = < (at l) > assign < ((after l) ∧' (vN x ==n n)) >
+-- (x ==n {! n  !})
+transStm l < x :=b bool b > = < (at l) > assign < (after l) ∧' (if b then (isTrue x) else ∼ (isTrue x)) >
+transStm l < x :=b bVar y > = < (at l) > assign < (after l) ∧' (x ==b y) >
 
 {-
   Extracts the labels of all given segments.
@@ -95,7 +91,7 @@ parFlow (x ∷ xs) = (after (label x)) ∧' (parFlow xs)
 
 {-# TERMINATING #-} -- used to guarantee that there is no infinite looping
 
-{- 
+{-
   Given a segment, returns a list of TransRel depending on the type of segment.
 -}
 transFlow : Seg → List TransRel
@@ -113,7 +109,7 @@ transFlow (if l b se) = < (after (label se)) > flowA < (after l) > ∷ (transFlo
 {-# TERMINATING #-} -- used to guarantee that there is no infinite looping
 
 {-
-  Helper function for traslate that uses different tranlation approaches 
+  Helper function for traslate that uses different tranlation approaches
   depending on the type of segment to be translated.
 -}
 translate' : Seg → List TransRel
@@ -131,8 +127,8 @@ translate' (while l (bool x) se) = bCheck ∷ (translate' se)
   where bCheck = if x then < (at l) > while < (□ (in' (label se))) > else < (at l) > while < (after (label se)) >
   -- Check the boolean expression (see Program) of the while loop (see Program)
   -- and translate accordingly
-translate' (while l (bVar (vB i)) se) = bVarCheck ∷ translate' se
-  where bVarCheck = < at l > while < ((at (label se) ∧' isTrue i) ∨' ((after l) ∧' (∼ (isTrue i)))) >
+translate' (while l (bVar (vB x)) se) = bVarCheck ∷ translate' se
+  where bVarCheck = < at l > while < ((at (label se) ∧' isTrue (vB x)) ∨' ((after l) ∧' (∼ (isTrue (vB x))))) >
   -- As above, but with a boolean variable
 translate' (if x exp se) = translate' se
   -- Translate the if statement

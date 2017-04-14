@@ -16,7 +16,7 @@ open import Translator
 open import Label
 open import Rules
 open import Function
-open import Data.String as String
+open import Data.String as String renaming (_++_ to _s++_)
 open import LTLRule
 {-****************************-}
 
@@ -53,7 +53,7 @@ takeStep prg (pStep r) (yes φ) = applyRule prg φ r
 takeStep prg (branch x b₁ b₂) (yes φ) = case res1 of λ -- Return depends on res1
                                                        -- and res2
   { (yes ψ₁) → case res2 of λ  -- First branch is valid, check result of second
-    { (yes ψ₂) → if isEq ψ₁ ψ₂ then yes ψ₁ else no ("Mismatch of conclusions " String.++ (pLTL ψ₁) String.++ " and " String.++ (pLTL ψ₂))
+    { (yes ψ₂) → if isEq ψ₁ ψ₂ then yes ψ₁ else no ("Mismatch of conclusions " s++ (pLTL ψ₁) s++ " and " s++ (pLTL ψ₂))
       -- If second branch is valid as well, check if they have the same
       -- conclusion
     ; err → err  -- Second branch invalid, return error message 'err'
@@ -83,7 +83,7 @@ proofCheck' rels pr (φ ⇒ ψ) _ = proofCheck' rels pr ψ φ
   -- pass on to itself
 proofCheck' rels (proof stps) (◇ φ) Γ = case res of λ
   -- If passed an eventually proof, return depends on res
-  { (yes ψ) → if isEq φ ψ then yes (◇ φ) else no ("Wrong conclusion, " String.++ (pLTL φ) String.++ " is not the same as " String.++ (pLTL ψ) String.++ ".")
+  { (yes ψ) → if isEq φ ψ then yes (◇ φ) else no ("Wrong conclusion, " s++ (pLTL φ) s++ " is not the same as " s++ (pLTL ψ) s++ ".")
     -- If the proof is valid and concludes the goal, return that it is valid,
     -- else return that it is invalid with an error message
   ; err → err
@@ -91,7 +91,7 @@ proofCheck' rels (proof stps) (◇ φ) Γ = case res of λ
   }
   where res = foldl (λ t stp → takeStep rels stp t) (yes Γ) stps
     -- res accumulates the result of takeStep on the proof passed
-proofCheck' rels _ φ Γ = if (isEq φ Γ) then yes φ else no ((pLTL φ) String.++ " is not true in the initial state.")
+proofCheck' rels _ φ Γ = if (isEq φ Γ) then yes φ else no ((pLTL φ) s++ " is not true in the initial state.")
   -- If the goal and what is known if identical, return that it is valid, else
   -- return an error message
 

@@ -8,6 +8,7 @@ module Program where
 open import Data.List
 open import Data.Nat
 open import Data.Bool
+open import Data.String
 open import Label
 {-****************************-}
 
@@ -15,13 +16,13 @@ open import Label
   Data type for integer variables
 -}
 data NVar : Set where
-  vN : (i : ℕ) → NVar  -- Natural variable (indexed over ℕ)
+  vN : String → NVar  -- Natural variable (indexed over ℕ)
 
 {-
   Data type for boolean variables
 -}
 data BVar : Set where
-  vB : (i : ℕ) → BVar  -- Boolean variable (indexed over ℕ)
+  vB : String → BVar  -- Boolean variable (indexed over ℕ)
 
 {-
   Data type for expressions regarding natural numbers/variables
@@ -54,11 +55,11 @@ data Exp : Set where
   Data type for statements, right now we only use atomic assignments
 -}
 data Stm : Set where
-  <_>:=n<_> : NVar → ExpN → Stm  -- Non-atomic assignment for natural variables
-  <_:=n_> : NVar → ExpN → Stm    -- Atomic assignment for natural variables
-  <_>:=b<_> : BVar → ExpB → Stm  -- Non-atomic assignment for boolean variables
+  -- <_>:=n<_> : NVar → ExpN → Stm  -- Non-atomic assignment for natural variables
+  <_:=n_> : NVar → ℕ → Stm    -- Atomic assignment for natural variables
+  -- <_>:=b<_> : BVar → ExpB → Stm  -- Non-atomic assignment for boolean variables
   <_:=b_> : BVar → ExpB → Stm    -- Atomic assignment for boolean variables
-  wait : Exp → Stm               -- Awaits an expression to become true,
+  -- wait : Exp → Stm               -- Awaits an expression to become true,
                                  -- currently not used
 
 {-

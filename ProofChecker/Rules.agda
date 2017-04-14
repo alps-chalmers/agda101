@@ -13,22 +13,23 @@ open import Data.Maybe
 open import Data.Nat
 open import Label
 open import ValidProof
-open import Data.String as String
+open import Data.String as String renaming (_++_ to _s++_)
 open import Data.Nat.Show as Show
 open import LTLRule
+open import Program
 {-****************************-}
 
 {-
   Used for convenience, simple equal checker for ℕ, self explanatory
 -}
 _=='_ : ℕ → ℕ → Bool
-zero ==' zero = true
-zero ==' suc y = false
-suc x ==' zero = false
+0 ==' 0 = true
+0 ==' (suc y) = false
+suc x ==' 0 = false
 suc x ==' suc y = x ==' y
 
 {-
-  Data type for program rules, indexed with rule and ltl. Specifically for 
+  Data type for program rules, indexed with rule and ltl. Specifically for
   proofsteps regarding the programs
 -}
 data ProgRule : LTL → Action → Set where
@@ -46,7 +47,7 @@ data ProgRule : LTL → Action → Set where
   exitRule  : (φ : LTL) → ProgRule φ while   -- Used when leaving a while loop
 
 {-
-  our different rules - program rules, ltl-rules and custom rules (forced 
+  our different rules - program rules, ltl-rules and custom rules (forced
   truths)
 -}
 data Rule : Set where
@@ -70,7 +71,11 @@ pRule (ltlR ∧-e₁) = "∧-e₁"
 pRule (ltlR ∧-e₂) = "∧-e₂"
 pRule (ltlR (∨-i₁ x)) = "∨-i₁"
 pRule (ltlR (∨-i₂ x)) = "∨-i₂"
-pRule (customR x x₁ x₂) = "Custom " String.++ Show.show x
+pRule (customR x x₁ x₂) = "Custom " s++ Show.show x
+
+pExpN : ExpN → String
+pExpN (nat x) = Show.show x
+pExpN (nVar (vN x)) = x
 
 {-
   to string for LTL formulae, self explanatory
@@ -78,18 +83,20 @@ pRule (customR x x₁ x₂) = "Custom " String.++ Show.show x
 pLTL : LTL → String
 pLTL T' = "T'"
 pLTL ⊥ = "⊥"
-pLTL (∼ x) = "(∼ " String.++ (pLTL x) String.++ ")"
-pLTL (□ x) = "(□ " String.++ (pLTL x) String.++ ")"
-pLTL (◇ x) = "(◇ " String.++ (pLTL x) String.++ ")"
-pLTL (x ∧' x₁) = "(" String.++ (pLTL x) String.++ " ∧' " String.++ (pLTL x₁) String.++ ")"
-pLTL (x ∨' x₁) = "(" String.++ (pLTL x) String.++ " ∨' " String.++ (pLTL x₁) String.++ ")"
-pLTL (x ⇒ x₁) = "(" String.++ (pLTL x) String.++ " ⇒ " String.++ (pLTL x₁) String.++ ")"
-pLTL (x ~> x₁) = "(" String.++ (pLTL x) String.++ " ~≳ " String.++ (pLTL x₁) String.++ ")"
-pLTL (x EQ x₁) = "(" String.++ (Show.show x) String.++ " EQ " String.++ (Show.show x₁) String.++ ")"
-pLTL (at (s x)) = "(at " String.++ (Show.show x) String.++ ")"
-pLTL (in' (s x)) = "(in " String.++ (Show.show x) String.++ ")"
-pLTL (after (s x)) = "(after " String.++ (Show.show x) String.++ ")"
-pLTL (isTrue x) = "(isTrue " String.++ (Show.show x) String.++ ")"
+pLTL (∼ x) = "(∼ " s++ (pLTL x) s++ ")"
+pLTL (□ x) = "(□ " s++ (pLTL x) s++ ")"
+pLTL (◇ x) = "(◇ " s++ (pLTL x) s++ ")"
+pLTL (x ∧' x₁) = "(" s++ (pLTL x) s++ " ∧' " s++ (pLTL x₁) s++ ")"
+pLTL (x ∨' x₁) = "(" s++ (pLTL x) s++ " ∨' " s++ (pLTL x₁) s++ ")"
+pLTL (x ⇒ x₁) = "(" s++ (pLTL x) s++ " ⇒ " s++ (pLTL x₁) s++ ")"
+pLTL (x ~> x₁) = "(" s++ (pLTL x) s++ " ~≳ " s++ (pLTL x₁) s++ ")"
+pLTL (x ==n y) = "(" s++ pExpN (nVar x) s++ " == " s++ (Show.show y) s++ ")"
+pLTL (vB x ==b vB y) = "(" s++ x s++ " == " s++ y s++ ")"
+pLTL (at (s x)) = "(at " s++ (Show.show x) s++ ")"
+pLTL (in' (s x)) = "(in " s++ (Show.show x) s++ ")"
+pLTL (after (s x)) = "(after " s++ (Show.show x) s++ ")"
+pLTL (isTrue (vB x)) = "(isTrue " s++ x s++ ")"
+--
 
 {-
   Checks if LTL statements are identical, self explanatory
@@ -106,7 +113,8 @@ isEq (x₁ ⇒ x₂) (y₁ ⇒ y₂) = (isEq x₁ y₁) ∧ ((isEq x₂ y₂))
 isEq (x₁ ~> x₂) (y₁ ~> y₂) = (isEq x₁ y₁) ∧ ((isEq x₂ y₂))
 isEq (at (s x)) (at (s y)) = x ==' y
 isEq (after (s x)) (after (s y)) = x ==' y
-isEq (x₁ EQ x₂) (y₁ EQ y₂) = ((x₁ ==' y₁)) ∧ (x₂ ==' y₂)
+isEq (vN x ==n n₁) (vN y ==n n₂) = (x == y) ∧ (n₁ ==' n₂)
+isEq (vB x ==b vB x₁) (vB x₂ ==b vB x₃) = (x == x₂) ∧ (x₁ == x₃)
 isEq _ _ = false
 
 {-
@@ -128,10 +136,8 @@ isEqA _ _ = false
   LTL formula → valid proof
 -}
 legalApplication : {φ : LTL} {a : Action} → List TransRel → LTL → ProgRule φ a → ValidProof
-legalApplication {φ} {a} [] ψ pr = no ((pLTL φ) String.++ " not found when applying " String.++ (pRule (progR pr)) String.++ " to " String.++ (pLTL ψ))
+legalApplication {φ} {a} [] ψ pr = no ((pLTL φ) s++ " not found when applying " s++ (pRule (progR pr)) s++ " to " s++ (pLTL ψ))
   -- If passed an empty program, return that it's invalid with an error message
-legalApplication {a} (todo ∷ rels) ψ pr = legalApplication rels ψ pr
-  -- If a placeholder is in the translation, continue
 legalApplication {φ} {a} (< pre > a' < post > ∷ rels) ψ pr = if isEq pre ψ ∧ isEqA a a' then yes post else legalApplication rels ψ pr
   -- If a triple (see Translator) is in the translation, its precondition is
   -- identical to the LTL formula and its action is identical to the rule's
@@ -146,7 +152,7 @@ applyLTL-R (φ ∧' ψ) ∧-e₁ = yes φ      -- and elimination (see LTLRules)
 applyLTL-R (φ ∧' ψ) ∧-e₂ = yes ψ      -- and elimination (see LTLRules)
 applyLTL-R φ (∨-i₁ ψ) = yes (ψ ∨' φ)  -- or insertion (see LTLRules)
 applyLTL-R φ (∨-i₂ ψ) = yes (φ ∨' ψ)  -- or insertion (see LTLRules)
-applyLTL-R φ r = no ((pRule (ltlR r)) String.++ " cannot be applied to " String.++ (pLTL φ))                          -- anything else is invalid with a message
+applyLTL-R φ r = no ((pRule (ltlR r)) s++ " cannot be applied to " s++ (pLTL φ))                          -- anything else is invalid with a message
 
 {-
   General application function. Takes a translated program, a thruth and a rule.
@@ -160,6 +166,6 @@ applyRule ts φ (ltlR r) = applyLTL-R φ r
   -- If the passed rule is an LTL rule, pass on to applyLTL-R and rreturn the
   -- result
 applyRule ts φ (customR n pre post) = if (isEq pre φ) then yes post else no err
-  where err = "The custom rule " String.++ (pRule (customR n pre post)) String.++ " cannot be applied to" String.++ (pLTL φ)
+  where err = "The custom rule " s++ (pRule (customR n pre post)) s++ " cannot be applied to" s++ (pLTL φ)
   -- If the passed rule is a custom rule and if the precondition of the rule and
   -- the true LTL are identical, return that it's valid, else that it's invalid
