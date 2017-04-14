@@ -108,3 +108,6 @@ simplePrfCheck = proofCheck simpleProg [] simpleProof ((at (s 0)) ⇒ (◇ (vN "
 
 diffPrfCheck : ValidProof
 diffPrfCheck = proofCheck diffProg [] diffProof ((at (s 0)) ⇒ (◇ (∼(isTrue (vB "p"))))) (at (s 8))
+
+
+

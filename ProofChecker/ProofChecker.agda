@@ -102,3 +102,45 @@ proofCheck' rels _ φ Γ = if (isEq φ Γ) then yes φ else no ((pLTL φ) s++ " 
 proofCheck : Prog → List TransRel → Proof → LTL → LTL → ValidProof
 proofCheck pr rels g Γ = proofCheck' ((translate pr) List.++ rels) g Γ
   -- Passes modified input to ProofCheck' (see above)
+
+
+
+
+{-***** test stuff *****-}
+
+update' : (LTL → LTL → Bool) → List LTL → LTL → List LTL
+update' f [] ltl = []
+update' f (x ∷ ltls) ltl = if (f x ltl) then (ltl ∷ ltls) else x ∷ (update' f ltls ltl)
+
+update : ℕ → List LTL → LTL → List LTL
+update x [] ltl = []
+update zero (x₁ ∷ ltls) ltl = ltl ∷ ltls
+update (suc x) (x₁ ∷ ltls) ltl = x₁ ∷ (update x ltls ltl)
+
+is∧ : LTL → Bool
+is∧ (ltl₁ ∧' ltl₂) = true
+is∧ _ = false
+
+
+expand∧₁ : (LTL → LTL → Bool) → List LTL → LTL → List LTL
+expand∧₁ f [] ltl = []
+expand∧₁ f ((ltl₁ ∧' ltl₂) ∷ ltls) ltl = if (f (ltl₁ ∧' ltl₂) ltl) then (ltl₁ ∷ (ltl₂ ∷ ltls)) else (ltl₁ ∧' ltl₂) ∷ (expand∧₁ f ltls ltl)
+expand∧₁ f (x ∷ ltls) ltl = x ∷ (expand∧₁ f ltls ltl)
+
+
+
+expand∧₂ : (LTL → LTL → Bool) → List LTL → LTL → List LTL
+expand∧₂ f [] ltl = []
+expand∧₂ f ((ltl₁ ∧' ltl₂) ∷ ltls) ltl = if (f (ltl₁ ∧' ltl₂) ltl) then (expand∧₂ f (ltl₁ ∷ []) ltl₁) ++ ((expand∧₂ f (ltl₂ ∷ []) ltl₂) ++ ltls) else (ltl₁ ∧' ltl₂) ∷ (expand∧₂ f ltls ltl)
+expand∧₂ f (x ∷ ltls) ltl = x ∷ (expand∧₂ f ltls ltl)
+
+
+
+expand_In_ : LTL → List LTL → List LTL
+expand ltl In ltls = if is∧ ltl then expand∧₂ isEq ltls ltl else ltls
+
+
+ltls : List LTL
+ltls = ⊥ ∷ ((at (s 0)) ∧' ((at (s 1)) ∧' (at (s 2))) ∷ (⊥ ∷ []))
+
+
