@@ -115,6 +115,7 @@ isEq (at (s x)) (at (s y)) = x ==' y
 isEq (after (s x)) (after (s y)) = x ==' y
 isEq (vN x ==n n₁) (vN y ==n n₂) = (x == y) ∧ (n₁ ==' n₂)
 isEq (vB x ==b vB x₁) (vB x₂ ==b vB x₃) = (x == x₂) ∧ (x₁ == x₃)
+isEq (isTrue (vB x)) (isTrue (vB y)) = x == y
 isEq _ _ = false
 
 {-
