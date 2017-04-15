@@ -24,6 +24,12 @@ infixl 15 _~>_
 infixl 55 _∧_
 infixl 50 _∨_
 
+
+--Lamport Hoare Triple
+data [_]_[_] : Props -> Statement -> Props -> Set where
+  haa-b : (p : BVar) -> (b : BExpr) ->
+                                        [ ⊤ ] (assignB p b) [ ¬ (beval (rvarB p)) ]
+
 -- Section [2]: Rules
 data _⊢_ : Statement -> Props -> Set where        -- descriptions of the rules
                                       -- state as an axiom / premise
@@ -115,6 +121,13 @@ data _⊢_ : Statement -> Props -> Set where        -- descriptions of the rules
                                       s ⊢ (q ⊃ r) ->
                                       ---------------
                                       s ⊢ (p ⊃ r)
+--------------------------------
+--Weird "not really rules" rules
+--------------------------------
+  -- Everything always implies True
+  box⊤-i : (s : Statement)(p : Props) ->
+                                      s ⊢ box (p ⊃ ⊤)
+
 --------------------------------                                      
 --Owicki Lamport Liveness Rules
 --------------------------------
@@ -151,6 +164,12 @@ data _⊢_ : Statement -> Props -> Set where        -- descriptions of the rules
                                       while p a ⊢
                                       ((at (while p a)) ~>
                                       ((at a) ∨ (after (while p a))))
+    -- Atomic Assigment Statement Rule
+  aasr-n :  {p q : Props} -> (x : NVar) -> (e : NExpr) ->
+                                      (a : ([ p ] (assignN x e) [ q ])) ->
+                                      ((assignN x e) ⊢ box (at (assignN x e) ⊃ p))->
+                                      ----------------------------------
+                                      (assignN x e) ⊢ ((at (assignN x e)) ~> ((after (assignN x e)) ∧ q))
 ----------------------------------------------
 -- TL Rules
 ----------------------------------------------

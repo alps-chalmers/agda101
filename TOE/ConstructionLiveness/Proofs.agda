@@ -83,7 +83,7 @@ ws = composition wa wb
 --Proof and assumptions
 wterma = aaa-b x T
 wflowb = wcf (rvarB x) wc
---wtriv = lta wb (after wb) 
+--wtriv = lta wb (after wb)
 wtriv = assume wb ((after wb)  ~> (after wb))
 wsafety = assume wb ((at wc) ~> ((at wb) ∧ (box (((at wb) ⊃ (¬ (beval (rvarB x))))))))
 wexit = wer (rvarB x) wc
