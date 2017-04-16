@@ -18,6 +18,7 @@ open import Rules
 open import Function
 open import Data.String as String renaming (_++_ to _s++_)
 open import LTLRule
+open import Truths
 {-****************************-}
 
 {-
@@ -145,7 +146,7 @@ ltls = ⊥ ∷ ((at (s 0)) ∧' ((at (s 1)) ∧' (at (s 2))) ∷ (⊥ ∷ []))
 
 
 {-***** truth stuff *****-}
-
+{-
 data Truths : Set where
   truths : List LTL → Truths
 
@@ -189,5 +190,5 @@ filterTruths (ltl ∷ ltls) = if shouldStay ltl then filterTruths ltls else ltl 
 
 updateTruths : List LTL → List LTL → Truths → Truths
 updateTruths add rem tr = truths (add ++ filterTruths (listTruths (rm' rem tr)))
-
+-}
 --dum ändring
