@@ -176,5 +176,16 @@ rm' : List LTL → Truths → Truths
 rm' [] tr = tr
 rm' (ltl ∷ ltls) tr = rm' ltls (rm ltl tr)
 
+shouldStay : LTL → Bool
+shouldStay (at _) = true
+shouldStay (in' _) = true
+shouldStay (after _) = true
+shouldStay (□ _) = true
+shouldStay _ = false
+
+filterTruths : List LTL → List LTL
+filterTruths [] = []
+filterTruths (ltl ∷ ltls) = if shouldStay ltl then filterTruths ltls else ltl ∷ (filterTruths ltls)
+
 updateTruths : List LTL → List LTL → Truths → Truths
-updateTruths add rem tr = truths (add ++ listTruths (rm' rem tr))
+updateTruths add rem tr = truths (add ++ filterTruths (listTruths (rm' rem tr)))
