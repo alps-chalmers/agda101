@@ -189,3 +189,4 @@ filterTruths (ltl ∷ ltls) = if shouldStay ltl then filterTruths ltls else ltl 
 
 updateTruths : List LTL → List LTL → Truths → Truths
 updateTruths add rem tr = truths (add ++ filterTruths (listTruths (rm' rem tr)))
+
