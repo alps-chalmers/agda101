@@ -144,3 +144,37 @@ ltls : List LTL
 ltls = ⊥ ∷ ((at (s 0)) ∧' ((at (s 1)) ∧' (at (s 2))) ∷ (⊥ ∷ []))
 
 
+{-***** truth stuff *****-}
+
+data Truths : Set where
+  truths : List LTL → Truths
+
+innitTruths : List LTL → Truths
+innitTruths ltls = truths ltls
+
+listTruths : Truths → List LTL
+listTruths (truths x) = x
+
+□truth : LTL → Truths → Truths
+□truth ltl₁ (truths []) = truths []
+□truth ltl₁ (truths (ltl₂ ∷ ltls)) = if (isEq ltl₁ ltl₂) then truths ((□ ltl₂) ∷ ltls) else truths ((ltl₂ ∷ []) ++  listTruths (□truth ltl₁ (truths ltls)))
+
+is□ : LTL → Bool
+is□ (□ _) = true
+is□ _ = false
+
+un□truth : LTL → Truths → Truths
+un□truth (□ ltl₁) (truths []) = truths []
+un□truth (□ ltl₁) (truths (ltl₂ ∷ ltls)) = if (isEq (□ ltl₁) ltl₂) then truths (ltl₁ ∷ ltls) else truths ((ltl₂ ∷ []) ++ (listTruths (un□truth (□ ltl₁) (truths ltls))))
+un□truth _ tr = tr
+
+rm : LTL → Truths → Truths
+rm ltl₁ (truths []) = truths []
+rm ltl₁ (truths (ltl₂ ∷ ltls)) = if (isEq ltl₁ ltl₂) then (truths ltls) else (truths ((ltl₂ ∷ []) ++ (listTruths (rm ltl₁ (truths ltls)))))
+
+rm' : List LTL → Truths → Truths
+rm' [] tr = tr
+rm' (ltl ∷ ltls) tr = rm' ltls (rm ltl tr)
+
+updateTruths : List LTL → List LTL → Truths → Truths
+updateTruths add rem tr = truths (add ++ listTruths (rm' rem tr))
