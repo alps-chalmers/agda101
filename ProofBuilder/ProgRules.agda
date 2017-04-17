@@ -6,6 +6,6 @@ open import Program
 open import Data.String
 open import Data.Nat
 
-data ProgRule {x y : Label} {e : Exp} : Stm x e y → LTL → Set where
+data ProgRule {x y : Label} {e : Exp} : LTL → (Stm x e y) → LTL → Set where
   -- assRule : {l₁ l₂ : Label} {e : Exp} {x : String} {n : ℕ} → ProgRule Stm l₁ (x := n) l₂ (after l₁ ∧' ("x" ==n n))
-  -- flow    : {l₁ l₂ : Label} {e : Exp} → Stm l₁ e l₂ → ProgRule (after l₁) (at l₂)
+  flow : ProgRule (after x) (Stm x e y) (at y)

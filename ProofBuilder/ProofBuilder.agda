@@ -1,4 +1,4 @@
-module Playground where
+module ProofBuilder where
 
 open import Label
 open import Data.Nat
@@ -6,7 +6,7 @@ open import Data.String
 open import LTLRules
 open import LTL
 open import Program
-open import ProgRules
+-- open import ProgRules
 
 data Proof : LTL → Set where
   assRule : {l₁ l₂ : Label} {x : String} {n : ℕ} → Proof (at l₁) → Stm l₁ (x := n) l₂ → Proof (after l₁ ∧' ("x" ==n n))
