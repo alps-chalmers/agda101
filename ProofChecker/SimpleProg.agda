@@ -68,6 +68,25 @@ simpleProof = prf
         prf = proof (r1 ∷ (r2 ∷ (r3 ∷ (r4 ∷ r5 ∷ (r6 ∷ r7 ∷ (r8 ∷ []))))))
           -- (at s0) ⇒ ◇(0 EQ 1)
 
+termProof : Proof
+termProof = proof prf
+  where
+    r1 = pStep (progR (seqRule (at (s 0))))
+    -- at s1
+    r2 = pStep (progR (assRule (at (s 1))))
+    -- after s1 ∧ 0 EQ 0
+    r3 = pStep (ltlR (∧-e₁))
+      -- after s1
+    r4 = pStep (progR (atomLive (after (s 1))))
+      -- at s2
+    r5 = pStep (progR (parRule (at (s 2))))
+      -- at s3 ∧ at s4
+    prf = r1 ∷ r2 ∷ r3 ∷ r4 ∷ r5 ∷ []
+
+
+termPrfCheck : ValidProof
+termPrfCheck = proofCheck simpleProg [] termProof ((at (s 0)) ⇒ (◇ ((at (s 3)) ∧' at ((s 4))))) (at (s 9))
+
 diffProg : Prog
 diffProg = prog main
   where
@@ -108,6 +127,3 @@ simplePrfCheck = proofCheck simpleProg [] simpleProof ((at (s 0)) ⇒ (◇ (vN "
 
 diffPrfCheck : ValidProof
 diffPrfCheck = proofCheck diffProg [] diffProof ((at (s 0)) ⇒ (◇ (∼(isTrue (vB "p"))))) (at (s 8))
-
-
-
