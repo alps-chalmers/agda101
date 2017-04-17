@@ -6,7 +6,7 @@ module ValidProof where
 
 {-***** imported modules *****-}
 open import Data.String
-open import LTL
+open import Truths
 {-****************************-}
 
 {-
@@ -14,5 +14,5 @@ open import LTL
   is invalid with a message
 -}
 data ValidProof : Set where
-  yes : LTL → ValidProof     -- Valid
+  yes : Truths → ValidProof     -- Valid
   no  : String → ValidProof  -- Invalid

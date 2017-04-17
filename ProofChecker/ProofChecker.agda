@@ -26,9 +26,9 @@ open import Truths
   -----TODO Add condition rule for branching.-----
 -}
 data ProofStep : Set where
-  pStep : Rule → ProofStep
+  pStep : Truths → Rule → ProofStep
     -- Regular proof step, uses a rule (see Rules)
-  branch : Rule → List ProofStep → List ProofStep → ProofStep
+  branch : Truths → Rule → List ProofStep → List ProofStep → ProofStep
     -- A branch step, used when multiple assumptions has to end up with the
     -- same conclusion. Functions as two sub-proofs
 
@@ -48,10 +48,10 @@ takeStep : List TransRel → ProofStep → ValidProof → ValidProof
 takeStep _ _ (no err) = no err
   -- If something invalid is passed (see ValidProof), return the ValidProof
   -- 'no' with error message 'err' (see ValidProof)
-takeStep prg (pStep r) (yes φ) = applyRule prg φ r
+takeStep prg (pStep tr r) (yes φ) = applyRule prg φ r
   -- If a regular proofstep is passed with a valid LTL formulae, pass
   -- information to applyRule (see Rules) and returns the result
-takeStep prg (branch x b₁ b₂) (yes φ) = case res1 of λ -- Return depends on res1
+takeStep prg (branch tr x b₁ b₂) (yes φ) = case res1 of λ -- Return depends on res1
                                                        -- and res2
   { (yes ψ₁) → case res2 of λ  -- First branch is valid, check result of second
     { (yes ψ₂) → if isEq ψ₁ ψ₂ then yes ψ₁ else no ("Mismatch of conclusions " s++ (pLTL ψ₁) s++ " and " s++ (pLTL ψ₂))
@@ -71,7 +71,7 @@ takeStep prg (branch x b₁ b₂) (yes φ) = case res1 of λ -- Return depends o
   Checks whether a given proof holds for a given program.
   proofCheck : program translation → proof → goal → known → Resulting Boolean
 -}
-proofCheck' : List TransRel → Proof → LTL → LTL → ValidProof
+proofCheck' : List TransRel → Proof → LTL → Truths → ValidProof
 proofCheck' _ _ T' _ = yes T'
   -- If passed something true, return that it is valid because it's true
 proofCheck' _ _ ⊥ _ = no  "⊥ always false."
@@ -79,7 +79,7 @@ proofCheck' _ _ ⊥ _ = no  "⊥ always false."
 proofCheck' rels pr (□ φ) Γ = no "TODO □"
   -- Currently not implemented
   -- TODO add box, maybe prove termination and still holds?
-proofCheck' rels pr (φ ⇒ ψ) _ = proofCheck' rels pr ψ φ
+proofCheck' rels pr (φ ⇒ ψ) _ = proofCheck' rels pr ψ (truths ?)
   -- If passed an implication, replace what is known with LHS of implication and
   -- pass on to itself
 proofCheck' rels (proof stps) (◇ φ) Γ = case res of λ
@@ -100,7 +100,7 @@ proofCheck' rels _ φ Γ = if (isEq φ Γ) then yes φ else no ((pLTL φ) s++ " 
   takes a program, custom rules, a proof, a goal and a truth. Returns wether or
   not the proof is valid given the rest of the passed input
 -}
-proofCheck : Prog → List TransRel → Proof → LTL → LTL → ValidProof
+proofCheck : Prog → List TransRel → Proof → LTL → Truths → ValidProof
 proofCheck pr rels g Γ = proofCheck' ((translate pr) List.++ rels) g Γ
   -- Passes modified input to ProofCheck' (see above)
 
