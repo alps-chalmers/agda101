@@ -9,7 +9,7 @@ open import Program
 
 data Proof : LTL → Set where
   -- Program rules --
-  assRule : {l₁ l₂ : Label} {x : String} {n : ℕ} → Proof (at l₁) → Stm l₁ (x := n) l₂ → Proof (after l₁ ∧' ("x" ==n n))
+  assiRule : {l₁ l₂ : Label} {x : String} {n : ℕ} → Proof (at l₁) → Stm l₁ (x := n) l₂ → Proof (after l₁ ∧' ("x" ==n n))
   flow    : {l₁ l₂ : Label} {e : Exp} → Proof (after l₁) → Stm l₁ e l₂ → Proof (at l₂)
   parRule : {l l' a b : Label} → Proof (at l) → Stm l (a || b) l' → Proof ((at a) ∧' (at b))
   exitPar : {l l' a b : Label} → Proof ((after a) ∧' (after b)) → Stm l (a || b) l' → Proof (after l ∧' (at l'))
