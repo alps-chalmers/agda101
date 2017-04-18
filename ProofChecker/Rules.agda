@@ -62,4 +62,6 @@ pRule (ltlR (∧-e₁ _)) = "∧-e₁"
 pRule (ltlR (∧-e₂ _)) = "∧-e₂"
 pRule (ltlR (∨-i₁ _ _)) = "∨-i₁"
 pRule (ltlR (∨-i₂ _ _)) = "∨-i₂"
+pRule (ltlR (exp-∧ _)) = "exp-∧"
+pRule (ltlR (∨-e _)) = "∨-e"
 pRule (customR x x₁ x₂) = "Custom " s++ Show.show x

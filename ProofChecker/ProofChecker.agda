@@ -62,12 +62,14 @@ applyLTL-R tr (∧-e₂ (φ ∧' ψ)) = if (isIn (φ ∧' ψ) tr) then (yes (upd
 applyLTL-R tr (∨-i₁ ψ φ) = if (isIn φ tr) then (yes (updateTruths ((ψ ∨' φ) ∷ []) [] (rm φ tr))) else (no ((pLTL φ) s++ " is not in " s++ (pTruths tr)))
   -- or insertion (see LTLRules)
 applyLTL-R tr (∨-i₂ ψ φ) = if (isIn φ tr) then (yes (updateTruths ((φ ∨' ψ) ∷ []) [] (rm φ tr))) else (no ((pLTL φ) s++ " is not in " s++ (pTruths tr)))
-  --yes (φ ∨' ψ)  -- or insertion (see LTLRules)
+  -- or insertion (see LTLRules)
+applyLTL-R tr (exp-∧ (φ ∧' ψ)) = if (isIn (φ ∧' ψ) tr) then yes (updateTruths (φ ∷ ψ ∷ []) [] tr) else (no ((pLTL (φ ∧' ψ)) s++ " is not in " s++ (pTruths tr)))
+-- applyLTL-R tr (∨-e (φ ∨' ψ)) = if (isIn (φ ∨' ψ) tr) then yes (updateTruths (φ ∷ ψ ∷ []) [] tr) else (no ((pLTL (φ ∨' ψ)) s++ " is not in " s++ (pTruths tr)))
 applyLTL-R tr r = no ((pRule (ltlR r)) s++ " cannot be applied to " s++ (pTruths tr))
   -- anything else is invalid with a message
 
 {-
-  General application function. Takes a translated program, a Thruths and a 
+  General application function. Takes a translated program, a Thruths and a
   rule. Returns if it is a Valid proof
 -}
 applyRule : List TransRel → Truths → Rule → ValidProof
@@ -77,7 +79,7 @@ applyRule ts tr (progR x) = legalApplication ts tr x
 applyRule ts tr (ltlR r) = applyLTL-R tr r
   -- If the passed rule is an LTL rule, pass on to applyLTL-R and rreturn the
   -- result
-applyRule ts tr (customR n pre post) = if (isIn pre tr) then (yes (updateTruths (post ∷ []) [] (rm pre tr))) else no err 
+applyRule ts tr (customR n pre post) = if (isIn pre tr) then (yes (updateTruths (post ∷ []) [] (rm pre tr))) else no err
   where err = "The custom rule " s++ (pRule (customR n pre post)) s++ " cannot be applied to" s++ (pTruths tr)
   -- If the passed rule is a custom rule and if the precondition of the rule and
   -- a true LTL are identical, return that it's valid, else that it's invalid
@@ -97,6 +99,8 @@ takeStep _ _ (no err) = no err
 takeStep prg (pStep r) (yes tr) = applyRule prg tr r
   -- If a regular proofstep is passed with a valid LTL formulae, pass
   -- information to applyRule (see Rules) and returns the result
+
+  -- if x can be applied, split ∨ and go
 takeStep prg (branch x b₁ b₂) (yes tr) = case res1 of λ -- Return depends on res1
                                                        -- and res2
   { (yes ψ₁) → case res2 of λ  -- First branch is valid, check result of second
@@ -189,4 +193,3 @@ expand ltl In ltls = if is∧ ltl then expand∧₂ isEq ltls ltl else ltls
 
 ltls : List LTL
 ltls = ⊥ ∷ ((at (s 0)) ∧' ((at (s 1)) ∧' (at (s 2))) ∷ (⊥ ∷ []))
-
