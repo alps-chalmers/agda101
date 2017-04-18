@@ -14,4 +14,3 @@ data LTLRule : Set where
   ∧-e₂  : LTLRule               -- and-elimination on second element
   ∨-i₁  : (φ : LTL) → LTLRule   -- or-elimination on first element
   ∨-i₂  : (φ : LTL) → LTLRule   -- or-elimination on second element
-  ⊥-e   : (φ : LTL) → LTLRule   -- ⊥-elimination
