@@ -28,6 +28,19 @@ data Action : Set where
   flowA  : Action  -- Progress between segments
 
 {-
+  Checks if actions are identical, self explanatory
+-}
+isEqA : Action → Action → Bool
+isEqA assign assign = true
+isEqA par par = true
+isEqA seq seq = true
+isEqA while while = true
+isEqA or' or' = true
+isEqA inInf inInf = true
+isEqA flowA flowA = true
+isEqA _ _ = false
+
+{-
   Represents transition relations, < pre > action < post >, where pre is the
   precondition of the program statement, action the reference to the type of
   program statement, and post the postcondition of the statement.

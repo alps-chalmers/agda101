@@ -15,6 +15,7 @@ open import LTLRule
 open import ValidProof
 open import Data.Bool
 open import Translator
+open import Truths
 {-****************************-}
 
 {-
@@ -53,21 +54,22 @@ simpleProof = prf
           -- at s1
         r2 = pStep (progR (assRule (at (s 1))))
           -- after s1 ∧ 0 EQ 0
-        r3 = pStep (ltlR (∧-e₁))
+        r3 = pStep (ltlR (∧-e₁ ((after (s 1)) ∧' ((vN "x") ==n 0))))
           -- after s1
         r4 = pStep (progR (atomLive (after (s 1))))
           -- at s2
         r5 = pStep (progR (parRule (at (s 2))))
           -- at s3 ∧ at s4
-        r6 = pStep (ltlR ∧-e₁)
+        r6 = pStep (ltlR (∧-e₁ ((at (s 3)) ∧' (at (s 4)))))
           -- at s3
         r7 = pStep (progR (assRule (at (s 3))))
           -- after s3 ∧ 0 EQ 1
-        r8 = pStep (ltlR (∧-e₂))
+        r8 = pStep (ltlR (∧-e₂ ((after (s 3)) ∧' ((vN "x") ==n 5))))
           -- 0 EQ 1
         prf = proof (r1 ∷ (r2 ∷ (r3 ∷ (r4 ∷ r5 ∷ (r6 ∷ r7 ∷ (r8 ∷ []))))))
           -- (at s0) ⇒ ◇(0 EQ 1)
 
+{-
 diffProg : Prog
 diffProg = prog main
   where
@@ -98,16 +100,17 @@ diffProof = prf
     r8 = pStep (ltlR ∧-e₂)
     -- ~p
     prf = proof (r1 ∷ r2 ∷ r3 ∷ r4 ∷ r5 ∷ r6 ∷ r7 ∷ r8 ∷ [])
-
+-}
 
 {-
   Simple example of how to use proofCheck (see ProofChecker)
 -}
 simplePrfCheck : ValidProof
-simplePrfCheck = proofCheck simpleProg [] simpleProof ((at (s 0)) ⇒ (◇ (vN "x" ==n 5))) (at (s 7))
+simplePrfCheck = proofCheck simpleProg [] simpleProof ((at (s 0)) ⇒ (◇ (vN "x" ==n 5))) (initTruths (at (s 7) ∷ []))
 
+{-
 diffPrfCheck : ValidProof
 diffPrfCheck = proofCheck diffProg [] diffProof ((at (s 0)) ⇒ (◇ (∼(isTrue (vB "p"))))) (at (s 8))
-
+-}
 
 

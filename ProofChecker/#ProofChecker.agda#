@@ -64,11 +64,12 @@ applyLTL-R tr (∨-i₁ ψ φ) = if (isIn φ tr) then (yes (updateTruths ((ψ �
   -- or insertion (see LTLRules)
 applyLTL-R tr (∨-i₂ ψ φ) = if (isIn φ tr) then (yes (updateTruths ((φ ∨' ψ) ∷ []) [] (rm φ tr))) else (no ((pLTL φ) s++ " is not in " s++ (pTruths tr)))
   --yes (φ ∨' ψ)  -- or insertion (see LTLRules)
-applyLTL-R tr r = no ((pRule (ltlR r)) s++ " cannot be applied to " s++ (pTruths tr))                          -- anything else is invalid with a message
+applyLTL-R tr r = no ((pRule (ltlR r)) s++ " cannot be applied to " s++ (pTruths tr))
+  -- anything else is invalid with a message
 
 {-
-  General application function. Takes a translated program, a thruth and a rule.
-  Returns if it is a Valid proof
+  General application function. Takes a translated program, a Thruths and a 
+  rule. Returns if it is a Valid proof
 -}
 applyRule : List TransRel → Truths → Rule → ValidProof
 applyRule ts tr (progR x) = legalApplication ts tr x
@@ -80,13 +81,15 @@ applyRule ts tr (ltlR r) = applyLTL-R tr r
 applyRule ts tr (customR n pre post) = if (isIn pre tr) then (yes (updateTruths (post ∷ []) [] (rm pre tr))) else no err 
   where err = "The custom rule " s++ (pRule (customR n pre post)) s++ " cannot be applied to" s++ (pTruths tr)
   -- If the passed rule is a custom rule and if the precondition of the rule and
-  -- the true LTL are identical, return that it's valid, else that it's invalid
+  -- a true LTL are identical, return that it's valid, else that it's invalid
 
-{-# TERMINATING #-} --used to guarantee that no infinite loop will occur
+{-***************-}
+{-# TERMINATING #-} -- Used to guarantee that no infinite loop will occur next
+{-***************-}
 
 {-
   takeStep tries to apply the rule for a step in the proof.
-  takeStep : Program translation → Proof step → Current truth → Resulting LTL
+  takeStep : Program translation → Proof step → Current truths → Resulting LTL
 -}
 takeStep : List TransRel → ProofStep → ValidProof → ValidProof
 takeStep _ _ (no err) = no err
@@ -113,7 +116,7 @@ takeStep prg (branch x b₁ b₂) (yes tr) = case res1 of λ -- Return depends o
 
 {-
   Checks whether a given proof holds for a given program.
-  proofCheck : program translation → proof → goal → known → Resulting Boolean
+  proofCheck : program translation → proof → goal → truths → Resulting Boolean
 -}
 proofCheck' : List TransRel → Proof → LTL → Truths → ValidProof
 proofCheck' _ _ T' _ = yes (truths (T' ∷ []))
@@ -141,7 +144,7 @@ proofCheck' rels _ φ tr = if (isIn φ tr) then yes (truths (φ ∷ [])) else no
   -- return an error message
 
 {-
-  takes a program, custom rules, a proof, a goal and a truth. Returns wether or
+  takes a program, custom rules, a proof, a goal and a truths. Returns wether or
   not the proof is valid given the rest of the passed input
 -}
 proofCheck : Prog → List TransRel → Proof → LTL → Truths → ValidProof

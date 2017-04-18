@@ -10,6 +10,7 @@ open import Data.Nat
 open import Data.Bool
 open import Data.String
 open import Label
+open import Data.Nat.Show as Show
 {-****************************-}
 
 {-
@@ -31,6 +32,10 @@ data ExpN : Set where
   nat : ℕ → ExpN      -- expression for ℕ
   nVar : NVar → ExpN  -- expression for natural variables, currently not
                       -- supported since no memory is implemented
+
+pExpN : ExpN → String
+pExpN (nat x) = Show.show x
+pExpN (nVar (vN x)) = x
 
 {-
   Data type for expressions regarding booleans
