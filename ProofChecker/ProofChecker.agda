@@ -64,6 +64,7 @@ applyLTL-R tr (∨-i₁ ψ φ) = if (isIn φ tr) then (yes (updateTruths ((ψ �
 applyLTL-R tr (∨-i₂ ψ φ) = if (isIn φ tr) then (yes (updateTruths ((φ ∨' ψ) ∷ []) [] (rm φ tr))) else (no ((pLTL φ) s++ " is not in " s++ (pTruths tr)))
   -- or insertion (see LTLRules)
 applyLTL-R tr (exp-∧ (φ ∧' ψ)) = if (isIn (φ ∧' ψ) tr) then yes (updateTruths (φ ∷ ψ ∷ []) [] tr) else (no ((pLTL (φ ∧' ψ)) s++ " is not in " s++ (pTruths tr)))
+applyLTL-R tr (□-e (□ φ)) = if (isIn (□ φ) tr) then yes (updateTruths (φ ∷ []) [] tr) else (no ((pLTL (□ φ)) s++ " is not in " s++ (pTruths tr)))
 -- applyLTL-R tr (∨-e (φ ∨' ψ)) = if (isIn (φ ∨' ψ) tr) then yes (updateTruths (φ ∷ ψ ∷ []) [] tr) else (no ((pLTL (φ ∨' ψ)) s++ " is not in " s++ (pTruths tr)))
 applyLTL-R tr r = no ((pRule (ltlR r)) s++ " cannot be applied to " s++ (pTruths tr))
   -- anything else is invalid with a message
@@ -101,21 +102,25 @@ takeStep prg (pStep r) (yes tr) = applyRule prg tr r
   -- information to applyRule (see Rules) and returns the result
 
   -- if x can be applied, split ∨ and go
-takeStep prg (branch x b₁ b₂) (yes tr) = case res1 of λ -- Return depends on res1
-                                                       -- and res2
-  { (yes ψ₁) → case res2 of λ  -- First branch is valid, check result of second
-    { (yes ψ₂) → if ψ₁ areIn ψ₂ then yes ψ₁ else no ("Mismatch of conclusions " s++ (pTruths ψ₁) s++ " and " s++ (pTruths ψ₂))
-      -- If second branch is valid as well, check if they have the same
-      -- conclusion
-    ; err → err  -- Second branch invalid, return error message 'err'
+takeStep prg (branch (ltlR (∨-e (φ ∨' ψ))) b₁ b₂) (yes tr) = case isIn (φ ∨' ψ) tr of λ
+    { true → case res1 of λ -- Return depends on res1 and res2
+      { (yes ψ₁) → case res2 of λ  -- First branch is valid, check result of second
+        { (yes ψ₂) → if ψ₁ areIn ψ₂ then yes ψ₁ else no ("Mismatch of conclusions " s++ (pTruths ψ₁) s++ " and " s++ (pTruths ψ₂))
+          -- If second branch is valid as well, check if they have the same
+          -- conclusion
+        ; err → err  -- Second branch invalid, return error message 'err'
+        }
+      ; err  → err   -- First branch invalid, return error message 'err'
+      }
+    ; _ → no (pLTL (φ ∨' ψ) s++ " cannot be found in truths.")
     }
-  ; err  → err   -- First branch invalid, return error message 'err'
-  }
-  where
-    res1 = foldl (λ Γ step → takeStep prg step Γ) (yes tr) b₁
-      -- Accumulates the result of takeStep on the first branch
-    res2 = foldl (λ Γ step → takeStep prg step Γ) (yes tr) b₂
-      -- Accumulates the result of takeStep on the second branch
+    where
+      res1 = foldl (λ Γ step → takeStep prg step Γ) (yes (updateTruths (φ ∷ []) [] tr)) b₁
+        -- Accumulates the result of takeStep on the first branch
+      res2 = foldl (λ Γ step → takeStep prg step Γ) (yes (updateTruths (ψ ∷ []) [] tr)) b₂
+        -- Accumulates the result of takeStep on the second branch
+takeStep _ _ _ = no "Branching can only be used on ∨-formulae. "
+
 
 {-
   Checks whether a given proof holds for a given program.

@@ -67,9 +67,16 @@ advProof = proof prf
     -- □ (after s3 ∧ ∼ x) , at s4
     r9 = pStep (progR (whileRule (at (s 4))))
     -- □ (after s3 ∧ ∼ x) , (at s5 ∧ x) ∨ (after s4 ∧ ~ x)
-    r10 = branch (ltlR {!   !}) {!   !} {!   !}
-    prf = r1 ∷ r2 ∷ r3 ∷ r4 ∷ r5 ∷ r6 ∷ r7 ∷ r8 ∷ r9 ∷ []
+    -- BRANCH 1 - □ (after s3 ∧ ∼ x) , at s5 ∧ x
+    r10-1-1 = pStep (ltlR (□-e (□ ((after (s 3)) ∧' (∼ (isTrue (vB "x")))))))
+    r10-1 = r10-1-1 ∷ []
+    -- BRANCH 2 - □ (after s3 ∧ ∼ x) , after s4 ∧ ∼ x
+    r10-2-1 = pStep (ltlR (□-e (□ ((after (s 3)) ∧' (∼ (isTrue (vB "x")))))))
+    r10-2 = r10-2-1 ∷ []
+    -- BRANCH start
+    r10 = branch (ltlR (∨-e (((at (s 5)) ∧' (isTrue (vB "x"))) ∨' ((after (s 4)) ∧' (∼ (isTrue (vB "x"))))))) r10-1 r10-2
+    prf = r1 ∷ r2 ∷ r3 ∷ r4 ∷ r5 ∷ r6 ∷ r7 ∷ r8 ∷ r9 ∷ r10 ∷ []
 
 
 advPrfCheck : ValidProof
-advPrfCheck = proofCheck advProg [] advProof ((at (s 0)) ⇒ (◇ ((at (s 5) ∧' isTrue (vB "x")) ∨' (after (s 4) ∧' ∼ (isTrue (vB "x")))) )) (truths [])
+advPrfCheck = proofCheck advProg [] advProof ((at (s 0)) ⇒ (◇ (after (s 3) ∧' ∼ (isTrue (vB "x"))))) (truths [])
