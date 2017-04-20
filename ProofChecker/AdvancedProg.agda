@@ -68,15 +68,57 @@ advProof = proof prf
     r9 = pStep (progR (whileRule (at (s 4))))
     -- □ (after s3 ∧ ∼ x) , (at s5 ∧ x) ∨ (after s4 ∧ ~ x)
     -- BRANCH 1 - □ (after s3 ∧ ∼ x) , at s5 ∧ x
-    r10-1-1 = pStep (ltlR (□-e (□ ((after (s 3)) ∧' (∼ (isTrue (vB "x")))))))
-    r10-1 = r10-1-1 ∷ []
+    r10-1-1 = pStep (ltlR (exp-∧ ((at (s 5)) ∧' ( (isTrue (vB "x")))))) --pStep (ltlR (□-e (□ ((after (s 3)) ∧' (∼ (isTrue (vB "x")))))))
+    -- □ (after s3 ∧ ∼ x) , at s5 , x
+    r10-1-2 = pStep (progR (assRule (at (s 5))))
+    -- □ (after s3 ∧ ∼ x) , (after s5 ∧ y=1)
+    r10-1-3 = pStep (ltlR (exp-∧ ((after (s 5)) ∧' ((vN "y") ==n 1))))
+    -- □ (after s3 ∧ ∼ x) , after s5,  y=1
+    r10-1-4 = pStep (progR (atomLive (after (s 5))))
+    -- □ (after s3 ∧ ∼ x) , at s4
+    r10-1-5 = pStep (ltlR (□-∧-e₂ (□ ((after (s 3)) ∧' (∼ (isTrue (vB "x")))))))
+    -- □ (after s3 ∧ ∼ x) , □ (~ x) , at s4
+    r10-1-6 = pStep (ltlR (∧-i (at (s 4)) (□ (∼ (isTrue (vB "x"))))))
+    -- □ (after s3 ∧ ∼ x) , at s4 ∧ □ (~ x)
+    r10-1-7 = pStep (progR (whileRule ((at (s 4)) ∧' (□ (∼ (isTrue (vB "x")))))))
+    -- □ (after s3 ∧ ∼ x) , after s4 ∧ □ (~ x)
+    r10-1-8 = pStep (ltlR (exp-∧ ((after (s 4)) ∧' (□ (∼ (isTrue (vB "x")))))))
+    -- □ (after s3 ∧ ∼ x) , after s4 , □ (~ x)
+    r10-1-9 = pStep (ltlR (□-e (□ (∼ (isTrue (vB "x"))))))
+    -- □ (after s3 ∧ ∼ x) , after s4 , □ (~ x), ~ x
+    r10-1-10 = pStep (ltlR (∧-i (after (s 4)) (∼ (isTrue (vB "x")))))
+    -- □ (after s3 ∧ ∼ x) , after s4 ∧ ∼ x , □ (~ x)
+    --r10-1-7 = pStep (customR 1 ((at (s 4)) ∧' (□ (∼ (isTrue (vB "x"))))) ((after (s 4)) ∧' (∼ (isTrue (vB "x")))))
+    -- □ (after s3 ∧ ∼ x) , after s4 ∧ ~ x
+    r10-1 = (r10-1-1 ∷ ( r10-1-2 ∷ (r10-1-3 ∷ (r10-1-4 ∷ (r10-1-5 ∷ r10-1-6 ∷ (r10-1-7 ∷ r10-1-8 ∷ (r10-1-9 ∷ (r10-1-10 ∷ []))))))))
     -- BRANCH 2 - □ (after s3 ∧ ∼ x) , after s4 ∧ ∼ x
-    r10-2-1 = pStep (ltlR (□-e (□ ((after (s 3)) ∧' (∼ (isTrue (vB "x")))))))
-    r10-2 = r10-2-1 ∷ []
+    r10-2-1 = pStep (ltlR (exp-∧ ((after (s 4)) ∧' (∼ (isTrue (vB "x"))))))
+    -- □ (after s3 ∧ ∼ x) , after s4 , ∼ x
+    r10-2-2 = pStep (ltlR (□-∧-e₂ (□ ((after (s 3)) ∧' (∼ (isTrue (vB "x")))))))
+    -- □ (after s3 ∧ ∼ x) , after s4 , □ (∼ x)
+    r10-2-3 = pStep (ltlR (□-e (□ (∼ (isTrue (vB "x"))))))
+    -- □ (after s3 ∧ ∼ x) , after s4 , □ (∼ x) , ~ x
+    r10-2-4 = pStep (ltlR (∧-i (after (s 4)) (∼ (isTrue (vB "x")))))
+    -- □ (after s3 ∧ ∼ x) , after s4 ∧ ~ x , □ (∼ x)
+    r10-2 = r10-2-1 ∷ r10-2-2 ∷ (r10-2-3 ∷ (r10-2-4 ∷ []))
     -- BRANCH start
     r10 = branch (ltlR (∨-e (((at (s 5)) ∧' (isTrue (vB "x"))) ∨' ((after (s 4)) ∧' (∼ (isTrue (vB "x"))))))) r10-1 r10-2
-    prf = r1 ∷ r2 ∷ r3 ∷ r4 ∷ r5 ∷ r6 ∷ r7 ∷ r8 ∷ r9 ∷ r10 ∷ []
+    -- □ (after s3 ∧ ∼ x) , after s4 ∧ ∼ x
+    r11 = pStep (ltlR (exp-∧ ((after (s 4)) ∧' (∼ (isTrue (vB "x"))))))
+    -- □ (after s3 ∧ ∼ x) , after s4 , ∼ x
+    r12 = pStep (ltlR (□-∧-e₁ (□ ((after (s 3)) ∧' (∼ (isTrue (vB "x")))))))
+    -- □ (after s3 ∧ ∼ x) , □ (after s3) , after s4
+    r13 = pStep (ltlR (□-e (□ (after (s 3)))))
+    -- □ (after s3 ∧ ∼ x) , □ (after s3) , after s3 , after s4
+    r14 = pStep (ltlR (∧-i (after (s 3)) (after (s 4))))
+    -- □ (after s3 ∧ ∼ x) , □ (after s3) , after s3 ∧ after s4
+    r15 = pStep (progR (atomLive ((after (s 3)) ∧' (after (s 4)))))
+    -- □ (after s3 ∧ ∼ x) , □ (after s3) , after s2
+    r16 = pStep (progR (atomLive (after (s 2))))
+    -- □ (after s3 ∧ ∼ x) , □ (after s3) , after s0 
+    --                                     ^^^^^^^^ <- Goal
+    prf = r1 ∷ r2 ∷ r3 ∷ r4 ∷ r5 ∷ r6 ∷ r7 ∷ r8 ∷ r9 ∷ r10 ∷ r11 ∷ r12 ∷ r13 ∷ r14 ∷ r15 ∷ r16 ∷ []
 
 
 advPrfCheck : ValidProof
-advPrfCheck = proofCheck advProg [] advProof ((at (s 0)) ⇒ (◇ (after (s 3) ∧' ∼ (isTrue (vB "x"))))) (truths [])
+advPrfCheck = proofCheck advProg [] advProof ((at (s 0)) ⇒ (◇ (after (s 0)))) (truths [])

@@ -66,6 +66,9 @@ applyLTL-R tr (∨-i₂ ψ φ) = if (isIn φ tr) then (yes (updateTruths ((φ �
 applyLTL-R tr (exp-∧ (φ ∧' ψ)) = if (isIn (φ ∧' ψ) tr) then yes (updateTruths (φ ∷ ψ ∷ []) [] tr) else (no ((pLTL (φ ∧' ψ)) s++ " is not in " s++ (pTruths tr)))
 applyLTL-R tr (□-e (□ φ)) = if (isIn (□ φ) tr) then yes (updateTruths (φ ∷ []) [] tr) else (no ((pLTL (□ φ)) s++ " is not in " s++ (pTruths tr)))
 -- applyLTL-R tr (∨-e (φ ∨' ψ)) = if (isIn (φ ∨' ψ) tr) then yes (updateTruths (φ ∷ ψ ∷ []) [] tr) else (no ((pLTL (φ ∨' ψ)) s++ " is not in " s++ (pTruths tr)))
+applyLTL-R tr (∧-i φ ψ) = if ((isIn φ tr) ∧ isIn ψ tr) then yes (updateTruths ((φ ∧' ψ) ∷ []) [] (rm' (φ ∷ (ψ ∷ [])) tr)) else no ((pLTL φ) s++ " or " s++ (pLTL ψ) s++ " are not in " s++ (pTruths tr))
+applyLTL-R tr (□-∧-e₁ (□ (φ ∧' ψ))) = if isIn (□ (φ ∧' ψ)) tr then yes (updateTruths ((□ φ) ∷ []) [] tr) else no ((pLTL (□ (φ ∧' ψ))) s++ (" is not in " s++ (pTruths tr)))
+applyLTL-R tr (□-∧-e₂ (□ (φ ∧' ψ))) = if isIn (□ (φ ∧' ψ)) tr then yes (updateTruths ((□ ψ) ∷ []) [] tr) else no ((pLTL (□ (φ ∧' ψ))) s++ (" is not in " s++ (pTruths tr)))
 applyLTL-R tr r = no ((pRule (ltlR r)) s++ " cannot be applied to " s++ (pTruths tr))
   -- anything else is invalid with a message
 
