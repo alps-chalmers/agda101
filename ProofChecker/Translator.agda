@@ -140,8 +140,10 @@ translate' (while l (bool x) se) = bCheck ∷ (translate' se)
   where bCheck = if x then < (at l) > while < (□ (in' (label se))) > else < (at l) > while < (after (label se)) >
   -- Check the boolean expression (see Program) of the while loop (see Program)
   -- and translate accordingly
-translate' (while l (bVar (vB x)) se) = bVarCheck ∷ translate' se
+translate' (while l (bVar (vB x)) se) = enterWhile ∷ exitWhile ∷ bVarCheck ∷ translate' se
   where bVarCheck = < at l > while < ((at (label se) ∧' isTrue (vB x)) ∨' ((after l) ∧' (∼ (isTrue (vB x))))) >
+        exitWhile = < ((at l) ∧' □ (∼ (isTrue (vB x)))) > while < (after l) ∧' (□ (∼ (isTrue (vB x)))) >
+        enterWhile = < ((at l) ∧' (□ (isTrue (vB x)))) > while < (□ (in' (label se))) >
   -- As above, but with a boolean variable
 translate' (if x exp se) = translate' se
   -- Translate the if statement

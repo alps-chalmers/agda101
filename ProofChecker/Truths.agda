@@ -80,7 +80,7 @@ shouldStay _ = false
 -}
 filterTruths : List LTL → List LTL
 filterTruths [] = []
-filterTruths (ltl ∷ ltls) = if shouldStay ltl then filterTruths ltls else ltl ∷ (filterTruths ltls)
+filterTruths (ltl ∷ ltls) = if shouldStay ltl then ltl ∷ (filterTruths ltls) else filterTruths ltls
 
 {-
   Updates the Truth
