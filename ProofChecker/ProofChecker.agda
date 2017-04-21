@@ -45,7 +45,7 @@ data Proof : Set where
 legalApplication : {φ : LTL} {a : Action} → List TransRel → Truths → ProgRule φ a → ValidProof
 legalApplication {φ} {a} [] tr pr = no ((pLTL φ) s++ " not found when applying " s++ (pRule (progR pr)) s++ " to " s++ (pTruths tr))
   -- If passed an empty program, return that it's invalid with an error message
-legalApplication {φ} {a} (< pre > a' < post > ∷ rels) tr pr = if isIn pre tr ∧ isEqA a a' then yes (updateTruths (post ∷ []) (pre ∷ []) tr) else legalApplication rels tr pr
+legalApplication {φ} {a} (< pre > a' < post > ∷ rels) tr pr = if isIn pre tr ∧ (isEqA a a' ∧ isEq φ pre) then yes (updateTruths (post ∷ []) (pre ∷ []) tr) else legalApplication rels tr pr
   -- If a triple (see Translator) is in the translation, its precondition is
   -- identical to a true LTL formula and its action is identical to the rule's
   -- action, return that it's a valid proof for the postcondition. Else continue

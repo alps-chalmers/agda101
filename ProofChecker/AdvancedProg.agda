@@ -45,6 +45,9 @@ advProg = prog main
         p2 = par (s 2) (p3 ∷ (p4 ∷ []))
         main = block (s 0) (p1 ∷ p2 ∷ [])
 
+s1 : Seg
+s1 = seg (s 1) < (vN "x") :=n 1 >
+
 
 advProof : Proof
 advProof = proof prf
