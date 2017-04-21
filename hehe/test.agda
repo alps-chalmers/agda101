@@ -28,39 +28,23 @@ module Vars where
 
 prog6 = program
 
--- atomic assignemnt rule applied t B
-asr-b = asr-f {prog6} {Labels.b} {Vars.p}
+after-b-and-p = (after Labels.b) ∧ (¬ (var Vars.p))
 
--- initial assumption
-init = assume {prog6} ((at Labels.b) ∧ (at Labels.c))
-atb = mp (∧-e1 {prog6} (at Labels.b) (at Labels.c)) init
+init = (at Labels.b) ∧ (at Labels.c)
+init-id = identity init
 
-unsquiggled-p = TL12 asr-b
-ab+p-false = mp unsquiggled-p atb
-ab+p-false-invariant = ▢-i {prog6} {((after Labels.b) ∧ (¬ (var Vars.p)))}
+b+p = asr-f prog6 Labels.b Vars.p
+b+p-id = identity (extract-ltl b+p)
 
-ab+p-false-eventually-always = ◇-mp ab+p-false ab+p-false-invariant
+unsquig = TL12 b+p-id
 
-ab-and-p-false-always = TL4a1 {prog6} (after Labels.b) (¬ (var Vars.p))
+after-b = d-mp (⊤-i prog6 (nd unsquig)) b+p
 
-ab-p-elim = ∧-e2 {prog6} (▢ (after Labels.b)) (▢ (¬ (var Vars.p)))
+after-b-and-p-inv = after-b-and-p ⊃ (▢ after-b-and-p)
+after-b-and-p-event = ◇ after-b-and-p
+bp-e1 = ∧-e1 (identity (after-b-and-p-inv ∧ after-b-and-p-event))
+bp-e2 = ∧-e2 (identity (after-b-and-p-inv ∧ after-b-and-p-event))
 
-ab-p-false-always = ◇-mp ab+p-false-eventually-always ab-and-p-false-always
-
-p-false-always = ◇-mp ab-p-false-always ab-p-elim
-
--- hehe
-c-status-always = assume {prog6} (▢ ((inside Labels.c) ∨ (after Labels.c)))
-c-status = ▢-e c-status-always
-
-c-status-and-p-eventually = ∧-i p-false-always c-status-always
-
-c-status-and-p-false-always = TL11 c-status-and-p-eventually
-
-always-p-disted = ∧-dist {prog6} (▢ (¬ (var Vars.p))) (inside Labels.c) (after Labels.c)
-
-c-status-p-dist = ◇-mp c-status-and-p-false-always always-p-disted
-
-
+eventually-always-after-b-and-p = ◇-mp bp-e1 bp-e2
 
 
