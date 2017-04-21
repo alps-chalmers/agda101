@@ -25,20 +25,20 @@ open import Data.Bool as Bool using (Bool; true; false)
 
 
 {- Program representation -}
-s0 : Stm (s 0) ("x" := 0) (s 1)
-s0 = reg (s 0) ("x" := 0) (s 1)
+s0 : Seg (s 0) ("x" :=n (nat 0)) (s 1)
+s0 = seg (s 0) ("x" :=n (nat 0)) (s 1)
 
-s1 : Stm (s 1) ("x" := 1) (s 2)
-s1 = reg (s 1) ("x" := 1) (s 2)
+s1 : Seg (s 1) ("x" :=n (nat 1)) (s 2)
+s1 = seg (s 1) ("x" :=n (nat 1)) (s 2)
 
-s3 : Stm (s 3) ("x" := 5) (fin (s 3))
-s3 = reg (s 3) ("x" := 5) (fin (s 3))
+s3 : Seg (s 3) ("x" :=n (nat 5)) (fin (s 3))
+s3 = seg (s 3) ("x" :=n (nat 5)) (fin (s 3))
 
-s4 : Stm (s 4) ("x" := 6) (fin (s 4))
-s4 = reg (s 4) ("x" := 6) (fin (s 4))
+s4 : Seg (s 4) ("x" :=n (nat 6)) (fin (s 4))
+s4 = seg (s 4) ("x" :=n (nat 6)) (fin (s 4))
 
-s2 : Stm (s 2) ((s 3) || (s 4)) (fin (s 2))
-s2 = par (s 2) s3 s4 (fin (s 2))
+s2 : Seg (s 2) ((s 3) || (s 4)) (fin (s 2))
+s2 = seg (s 2) ((s 3) || (s 4)) (fin (s 2))
 
 {- Proofs for the program. -}
 
@@ -57,7 +57,7 @@ s2=>s4 p =  ∧-e₂ (parRule p s2)
 s3=>s3' : Proof (at (s 3)) → Proof (after (s 3))
 s3=>s3' p =  ∧-e₁ (assiRule p s3)
 
-s3=>x==5 : Proof (at (s 3)) → Proof ("x" ==n 5)
+s3=>x==5 : Proof (at (s 3)) → Proof ("x" ==n (nat 5))
 s3=>x==5 p = ∧-e₂ (assiRule p s3)
 
 s4=>s4' : Proof (at (s 4)) → Proof (after (s 4))
@@ -78,7 +78,7 @@ ps1⇒s2' : Proof (at (s 1)) → Proof (after (s 2))
 ps1⇒s2' p = s2=>s2' (s1=>s2 p)
 
 -- Proof of ◇ x==5
-ps0⇒x==5 : Proof (at (s 0)) → Proof ("x" ==n 5)
+ps0⇒x==5 : Proof (at (s 0)) → Proof ("x" ==n (nat 5))
 ps0⇒x==5 p = s3=>x==5 (s2=>s3 (s1=>s2 (s0=>s1 p)))
 
 
@@ -96,23 +96,23 @@ ps0⇒x==5 p = s3=>x==5 (s2=>s3 (s1=>s2 (s0=>s1 p)))
   s5: x = 5
 -}
 
-w0 : Stm (s 0) ("x" := 0) (s 1)
-w0 = reg (s 0) ("x" := 0) (s 1)
+w0 : Seg (s 0) ("x" :=n (nat 0)) (s 1)
+w0 = seg (s 0) ("x" :=n (nat 0)) (s 1)
 
-w2 : Stm (s 2) ("x" := 1) (fin (s 2))
-w2 = reg (s 2) ("x" := 1) (fin (s 2))
+w2 : Seg (s 2) ("x" :=n (nat 1)) (fin (s 2))
+w2 = seg (s 2) ("x" :=n (nat 1)) (fin (s 2))
 
-w4 : Stm (s 4) ("x" := 6) (s 3)
-w4 = reg (s 4) ("x" := 6) (s 3)
+w4 : Seg (s 4) ("x" :=n (nat 6)) (s 3)
+w4 = seg (s 4) ("x" :=n (nat 6)) (s 3)
 
-w3 : Stm (s 3) (while false (s 4)) (fin (s 3))
-w3 = while (s 3) false (s 4) (fin (s 3))
+w3 : Seg (s 3) (while (bool false) (s 4)) (fin (s 3))
+w3 = seg (s 3) (while (bool false) (s 4)) (fin (s 3))
 
-w1 : Stm (s 1) ((s 2) || (s 3)) (s 5)
-w1 = par ((s 1)) w2 w3 (s 5)
+w1 : Seg (s 1) ((s 2) || (s 3)) (s 5)
+w1 = seg ((s 1)) ((s 2) || (s 3)) (s 5)
 
-w5 : Stm (s 5) ("x" := 5) (fin (s 5))
-w5 = reg (s 5) ("x" := 5) (fin (s 5))
+w5 : Seg (s 5) ("x" :=n (nat 5)) (fin (s 5))
+w5 = seg (s 5) ("x" :=n (nat 5)) (fin (s 5))
 
 
 -- Termination proof
@@ -126,11 +126,16 @@ w1=>w2∧w3 p = parRule p w1
 w2∧w3=>w2'∧w3' : Proof (at (s 2) ∧ at (s 3)) → Proof(after (s 2) ∧ after (s 3))
 w2∧w3=>w2'∧w3' p = ∧-i (∧-e₁ (assiRule (∧-e₁ p) w2)) (exWhile-F (∧-e₂ p) w3)
 
-w2'∧w3=>s5 : Proof(after (s 2) ∧ after (s 3)) → Proof (at (s 5))
-w2'∧w3=>s5 p = flow (exitPar p w1) w1
+w2'∧w3'=>s5 : Proof(after (s 2) ∧ after (s 3)) → Proof (at (s 5))
+w2'∧w3'=>s5 p = flow (exitPar p w1) w1
 
-s5=>x==5 : Proof (at (s 5)) → Proof ("x" ==n 5)
+s5=>x==5 : Proof (at (s 5)) → Proof ("x" ==n (nat 5))
 s5=>x==5 p = ∧-e₂ (assiRule p w5)
 
-s0=>x==5 : Proof (at (s 0)) → Proof ("x" ==n 5)
-s0=>x==5 p = s5=>x==5 (w2'∧w3=>s5 (w2∧w3=>w2'∧w3' (w1=>w2∧w3 (w0=>w1 p))))
+-- Final proof of termination from the entry point.
+s0=>x==5 : Proof (at (s 0)) → Proof ("x" ==n (nat 5))
+s0=>x==5 p = s5=>x==5 (w2'∧w3'=>s5 (w2∧w3=>w2'∧w3' (w1=>w2∧w3 (w0=>w1 p))))
+
+-- Proof of termination and property of variable "x"
+s0=>x==5∧s5' : Proof (at (s 0)) → Proof (("x" ==n (nat 5)) ∧ (after (s 5)))
+s0=>x==5∧s5' p = ∧-comm (assiRule (w2'∧w3'=>s5 (w2∧w3=>w2'∧w3' (w1=>w2∧w3 (w0=>w1 p)))) w5)

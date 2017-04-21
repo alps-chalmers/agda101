@@ -1,18 +1,22 @@
+
+-- Module used for representing concurrent programs in agda.
+
 module Program where
 
 open import Label
 open import Data.Nat
 open import Data.String
 open import Data.Bool
+open import LTL
 
-data Exp : Set where
-  _:=_  : (x : String) → (n : ℕ) → Exp
-  _||_  : (a : Label) → (b : Label) → Exp
-  if    : (b : Bool) → (s : Label) → Exp
-  while : (b : Bool) → (s : Label) → Exp
+-- Program statement representation.
+data Stm : Set where
+  _:=n_ : (x : String) → (n : ℕ*) → Stm
+  _:=b_ : (x : String) → (b : Bool*) → Stm
+  _||_  : (a : Label) → (b : Label) → Stm
+  if    : (b : Bool*) → (s : Label) → Stm
+  while : (b : Bool*) → (s : Label) → Stm
 
-data Stm : Label → Exp → Label → Set where
-  reg     : (l₁ : Label) → (e : Exp) → (l₂ : Label) → Stm l₁ e l₂
-  if      : (l₁ : Label) → (b : Bool) → (s : Label) → (l₂ : Label) → Stm l₁ (if b s) l₂
-  while   : (l₁ : Label) → (b : Bool) → (s : Label) → (l₂ : Label) → Stm l₁ (while b s) l₂
-  par     : {a₁ a₂ b₁ b₂ : Label} {e₁ e₂ : Exp} → (l₁ : Label) → Stm a₁ e₁ a₂ → Stm b₁ e₂ b₂ → (l₂ : Label) → Stm l₁ (a₁ || b₁) l₂
+-- Program segment representation. A segment is a labled statement.
+data Seg : Label → Stm → Label → Set where
+  seg : (l₁ : Label) → (stm : Stm) → (l₂ : Label) → Seg l₁ stm l₂
