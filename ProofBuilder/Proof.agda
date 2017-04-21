@@ -11,14 +11,15 @@ data Proof : LTL → Set where
 
   -- Program rules --
   :=n-R     : {l₁ l₂ : Label} {x : String} {n : ℕ*} → Proof (at l₁) → Seg l₁ (x :=n n) l₂ → Proof (after l₁ ∧ ("x" ==n n))
-  :=b-T-R     : {l₁ l₂ : Label} {x : String} → Proof (at l₁) → Seg l₁ (x :=b (bool true)) l₂ → Proof (after l₁ ∧ (tr (var x)))
-  :=b-F-R     : {l₁ l₂ : Label} {x : String} → Proof (at l₁) → Seg l₁ (x :=b (bool false)) l₂ → Proof (after l₁ ∧ (∼ (tr (var x))))
-  :=bVar-R : {l₁ l₂ : Label} {x y : String} → Proof (at l₁) → Seg l₁ (x :=b (var y)) l₂ → Proof (after l₁ ∧ (x ==b (var y)))
+  :=b-T-R   : {l₁ l₂ : Label} {x : String} → Proof (at l₁) → Seg l₁ (x :=b (bool true)) l₂ → Proof (after l₁ ∧ (tr (var x)))
+  :=b-F-R   : {l₁ l₂ : Label} {x : String} → Proof (at l₁) → Seg l₁ (x :=b (bool false)) l₂ → Proof (after l₁ ∧ (∼ (tr (var x))))
+  :=bVar-R  : {l₁ l₂ : Label} {x y : String} → Proof (at l₁) → Seg l₁ (x :=b (var y)) l₂ → Proof (after l₁ ∧ (x ==b (var y)))
   flow      : {l₁ l₂ : Label} {e : Stm} → Proof (after l₁) → Seg l₁ e l₂ → Proof (at l₂)
   parRule   : {l l' a b : Label} → Proof (at l) → Seg l (a || b) l' → Proof ((at a) ∧ (at b))
   exitPar   : {l l' a b : Label} → Proof ((after a) ∧ (after b)) → Seg l (a || b) l' → Proof (after l)
   ifRule    : {l l' s : Label} {b : Bool*} → Proof (at l) → Seg l (if b s) l' → Proof ((at s) ∨ (after l))
   exWhile-F : {l l' s : Label} → Proof (at l) → Seg l (while (bool false) s) l' → Proof (after l)
+  exWhile-E : {l l' s : Label} {x y : ℕ} → Proof (at l) → Seg l (while ((nat x) <' (nat y)) s) l' → Proof (after l)
   exitWhile : {l l' s : Label} {b : Bool*} → Proof ((at l) ∧ (□ (∼ (tr b)))) → Seg l (while b s) l' → Proof (after l)
   at=>af'   : {l₁ : Label} → Proof (at l₁) → Proof (∼ (after l₁))
   -- LTL --

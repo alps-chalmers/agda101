@@ -12,8 +12,9 @@ data ℕ* : Set where
 
 -- Bool extended with variables.
 data Bool* : Set where
-  var  : (x : String) → Bool*
-  bool : (b : Bool) → Bool*
+  var   : (x : String) → Bool*
+  _<'_  : (x : ℕ*) → (y : ℕ*) → Bool*
+  bool  : (b : Bool) → Bool*
 
 -- The extended LTL data type
 data LTL : Set where

@@ -13,7 +13,9 @@ open import Data.Bool as Bool using (Bool; true; false)
 
 
 
-{- == The program ==
+--============================   Simple Program   ==============================
+
+{-
   s0: x = 0
   s1: x = 1
   s2: cobegin
@@ -24,7 +26,9 @@ open import Data.Bool as Bool using (Bool; true; false)
 -}
 
 
-{- Program representation -}
+
+-- Program representation
+
 s0 : Seg (s 0) ("x" :=n (nat 0)) (s 1)
 s0 = seg (s 0) ("x" :=n (nat 0)) (s 1)
 
@@ -82,7 +86,7 @@ ps0⇒x==5 : Proof (at (s 0)) → Proof ("x" ==n (nat 5))
 ps0⇒x==5 p = s3=>x==5 (s2=>s3 (s1=>s2 (s0=>s1 p)))
 
 
--- ================While-Program===================
+--============================   While-Program   ===============================
 
 {- == The program ==
   s0: x = 0
@@ -141,7 +145,7 @@ s0=>x==5∧s5' : Proof (at (s 0)) → Proof (("x" ==n (nat 5)) ∧ (after (s 5))
 s0=>x==5∧s5' p = ∧-comm (:=n-R (w2'∧w3'=>s5 (w2∧w3=>w2'∧w3' (w1=>w2∧w3 (w0=>w1 p)))) w5)
 
 
---======================== "Advanced" While Program ========================
+--=======================   "Advanced" While Program   =========================
 
 {- == The program ==
   s0: x = true
