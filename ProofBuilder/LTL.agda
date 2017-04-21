@@ -27,4 +27,4 @@ data LTL : Set where
                                                     -- from Owiki & Lamport
   _==n_         : (x : String) → (n : ℕ*) → LTL       -- Nat variable x has the value n
   _==b_         : (x : String) → (b : Bool*) → LTL  -- Bool variable x has the value of y
-  isTrue        : (x : String) → LTL                 -- Variable x has the value -- true
+  tr            : (x : Bool*) → LTL                 -- Variable x has the value -- true
