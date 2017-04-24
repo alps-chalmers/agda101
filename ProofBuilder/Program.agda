@@ -11,12 +11,16 @@ open import LTL
 
 -- Program statement representation.
 data Stm : Set where
-  _:=n_ : (x : String) → (n : ℕ*) → Stm
-  _:=b_ : (x : String) → (b : Bool*) → Stm
-  _||_  : (a : Label) → (b : Label) → Stm
-  if    : (b : Bool*) → (s : Label) → Stm
-  while : (b : Bool*) → (s : Label) → Stm
+  _:=n_ : (x : String) → (n : ℕ*) → Stm     -- Nat assignment
+  _:=b_ : (x : String) → (b : Bool*) → Stm  -- Bool assignment
+  _||_  : (a : Label) → (b : Label) → Stm   -- a and b exectued in parallel
+  if    : (b : Bool*) → (s : Label) → Stm   -- if-statement
+  while : (b : Bool*) → (s : Label) → Stm   -- while-statement
 
 -- Program segment representation. A segment is a labled statement.
 data Seg : Label → Stm → Label → Set where
   seg : (l₁ : Label) → (stm : Stm) → (l₂ : Label) → Seg l₁ stm l₂
+
+-- A program starting at at label i
+data Prog : Label → Set where
+  prog : (i : Label) → Prog i
