@@ -22,5 +22,6 @@ data Seg : Label → Stm → Label → Set where
   seg : (l₁ : Label) → (stm : Stm) → (l₂ : Label) → Seg l₁ stm l₂
 
 -- A program starting at at label i
-data Prog : Label → Set where
-  prog : (i : Label) → Prog i
+data Prog : (i : Label) → (n : ℕ) → Set where
+  prog : (i : Label) → Prog i 0
+  _⋆_  : ∀{i n} → Prog i n → (φ : LTL) → Prog i (n + 1) -- Represents assumptions
