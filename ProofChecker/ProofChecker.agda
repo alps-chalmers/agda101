@@ -201,3 +201,86 @@ expand ltl In ltls = if is∧ ltl then expand∧₂ isEq ltls ltl else ltls
 
 ltls : List LTL
 ltls = ⊥ ∷ ((at (s 0)) ∧' ((at (s 1)) ∧' (at (s 2))) ∷ (⊥ ∷ []))
+
+{-********** Safety Attempt **********-}
+
+_eq_ : ℕ → ℕ → Bool
+zero eq zero = true
+zero eq suc y = false
+suc x eq zero = false
+suc x eq suc y = x eq y
+
+_isLarger_ : ℕ → ℕ → Bool
+zero isLarger zero = false
+zero isLarger suc y = false
+suc x isLarger zero = true
+suc x isLarger suc y = x isLarger y
+
+_isIn'_ : Label → List Seg → Bool
+s x isIn' [] = false
+s x isIn' (seg (s x₁) x₂ ∷ segs) = if (x eq x₁) then true else ((s x) isIn' segs)
+s x isIn' (block (s x₁) x₂ ∷ segs) = if (x eq x₁) then true else (if ((s x) isIn' x₂) then true else ((s x) isIn' segs))
+s x isIn' (par (s x₁) x₂ ∷ segs) = if (x eq x₁) then true else (if ((s x) isIn' x₂) then true else ((s x) isIn' segs))
+s x isIn' (while (s x₁) x₂ x₃ ∷ segs) = if (x eq x₁) then true else (if ((s x) isIn' (x₃ ∷ [])) then true else ((s x) isIn' segs))
+s x isIn' (if (s x₁) x₂ x₃ ∷ segs) = if (x eq x₁) then true else (if ((s x) isIn' (x₃ ∷ [])) then true else ((s x) isIn' segs))
+
+inPar : Label → List Seg → Bool
+inPar _ [] = false
+inPar (s x) (seg (s x₁) x₂ ∷ segs) = if (x eq x₁) then false else inPar (s x) segs
+inPar (s x) (block (s x₁) x₂ ∷ segs) = if (x eq x₁) then false else (if (inPar (s x) x₂) then true else (inPar (s x) segs))
+inPar (s x) (par (s x₁) x₂ ∷ segs) = if (x eq x₁) then false else (if s x isIn' x₂ then true else (inPar (s x) segs))
+inPar (s x) (while (s x₁) x₂ sg ∷ segs) = if (x eq x₁) then false else (if (inPar (s x) (sg ∷ [])) then true else (inPar (s x) segs))
+inPar (s x) (if (s x₁) x₂ sg ∷ segs) = if (x eq x₁) then false else (if (inPar (s x) (sg ∷ [])) then true else (inPar (s x) segs))
+
+inParLabel : Label → List Seg → Label
+inParLabel (s x) [] = s 0
+inParLabel (s x) (seg x₁ x₂ ∷ segs) = inParLabel (s x) segs
+inParLabel (s x) (block x₁ x₂ ∷ segs) = if ((s x) isIn' x₂) then (inParLabel (s x) x₂) else (inParLabel (s x) segs)
+inParLabel (s x) (par x₁ x₂ ∷ segs) = if ((s x) isIn' x₂) then x₁ else (inParLabel (s x) segs)
+inParLabel (s x) (while x₁ x₂ x₃ ∷ segs) = if ((s x) isIn' (x₃ ∷ [])) then (inParLabel (s x) (x₃ ∷ [])) else (inParLabel (s x) segs)
+inParLabel (s x) (if x₁ x₂ x₃ ∷ segs) = if ((s x) isIn' (x₃ ∷ [])) then (inParLabel (s x) (x₃ ∷ [])) else (inParLabel (s x) segs)
+
+inWhile : Label → List Seg → Bool
+inWhile _ [] = false
+inWhile (s x) (seg (s x₁) x₂ ∷ segs) = if (x eq x₁) then false else inWhile (s x) segs
+inWhile (s x) (block (s x₁) x₂ ∷ segs) = if (x eq x₁) then false else (if (inWhile (s x) x₂) then true else (inWhile (s x) segs))
+inWhile (s x) (par (s x₁) x₂ ∷ segs) = if (x eq x₁) then false else (if (inWhile (s x) x₂) then true else (inWhile (s x) segs))
+inWhile (s x) (while (s x₁) x₂ sg ∷ segs) = if (x eq x₁) then false else (if ((s x) isIn' (sg ∷ [])) then true else (inWhile (s x) segs))
+inWhile (s x) (if (s x₁) x₂ sg ∷ segs) = if (x eq x₁) then false else (if (inWhile (s x) (sg ∷ [])) then true else (inWhile (s x) segs))
+
+inWhileLabel : Label → List Seg → Label
+inWhileLabel (s x) [] = s 0
+inWhileLabel (s x) (seg x₁ x₂ ∷ segs) = inWhileLabel (s x) segs
+inWhileLabel (s x) (block x₁ x₂ ∷ segs) = if ((s x) isIn' x₂) then (inWhileLabel (s x) x₂) else (inWhileLabel (s x) segs)
+inWhileLabel (s x) (par x₁ x₂ ∷ segs) = if ((s x) isIn' x₂) then (inWhileLabel (s x) x₂) else (inWhileLabel (s x) segs)
+inWhileLabel (s x) (while x₁ x₂ x₃ ∷ segs) = if ((s x) isIn' (x₃ ∷ [])) then x₁ else (inWhileLabel (s x) segs)
+inWhileLabel (s x) (if x₁ x₂ x₃ ∷ segs) = if ((s x) isIn' (x₃ ∷ [])) then (inWhileLabel (s x) (x₃ ∷ [])) else (inWhileLabel (s x) segs)
+
+_breaks_ : TransRel → LTL → Bool
+< pre > assign < (after (s x)) ∧' (isTrue (vB x₁)) > breaks (∼ (isTrue (vB x₂))) = x₁ == x₂
+< pre > assign < (after (s x)) ∧' ((vN x₁) ==n n₁) > breaks ((vN x₂) ==n n₂) = (x₁ == x₂) ∧ not (n₁ eq n₂)
+--< pre > assign < after (s x) ∧' (vB x₁ ==b n₁) > breaks (vB x₂ ==b y) = (x₁ == x₂) ∧ ({!!} ∧ {!!})
+< pre > assign < (after (s x)) ∧' (∼ (isTrue (vB x₁))) > breaks (isTrue (vB x₂)) = x₁ == x₂
+< pre > assign < post > breaks _  = false
+< pre > _ < post > breaks _  = false
+
+isAfter : TransRel → Label → Bool
+isAfter < at (s x) > assign < post > (s x₁) = x isLarger x₁
+isAfter _ _ = false
+
+
+checkFrom : Label → LTL → List TransRel → Bool
+checkFrom (s x) _ [] = true
+checkFrom (s x) (∼ (isTrue (vB x₁))) (x₂ ∷ rels) = if (x₂ breaks (∼ (isTrue (vB x₁)))) ∧ (isAfter x₂ (s x)) then false else checkFrom (s x) (∼ (isTrue (vB x₁))) rels
+checkFrom (s x) (x₁ ==n n) (x₂ ∷ rels) = if (x₂ breaks (x₁ ==n n)) ∧ (isAfter x₂ (s x)) then false else checkFrom (s x) (x₁ ==n n) rels
+--checkFrom (s x) (x₁ ==b y) rels = {!!}
+checkFrom (s x) (isTrue (vB x₁)) (x₂ ∷ rels) = if ((x₂ breaks isTrue (vB x₁)) ∧ isAfter x₂ (s x)) then false else checkFrom (s x) (isTrue (vB x₁)) rels
+checkFrom _ _ _ = false
+
+_=>_,_ : LTL → LTL → Prog → Bool
+after l => □ (∼ (isTrue (vB x))) , prog main = if (inPar l (main ∷ [])) then (if (inWhile l (main ∷ [])) then (checkFrom (inParLabel l (main ∷ [])) (∼ (isTrue (vB x))) (translate (prog main))) ∧ (checkFrom (inWhileLabel l (main ∷ [])) (∼ (isTrue (vB x))) (translate (prog main))) else checkFrom (inParLabel l (main ∷ [])) (∼ (isTrue (vB x))) (translate (prog main))) else (if (inWhile l (main ∷ [])) then (checkFrom (inWhileLabel l (main ∷ [])) (∼ (isTrue (vB x))) (translate (prog main))) else (checkFrom l (∼ (isTrue (vB x))) (translate (prog main))))
+after l => □ (x ==n n) , prog main = if (inPar l (main ∷ [])) then (if (inWhile l (main ∷ [])) then (checkFrom (inParLabel l (main ∷ [])) (x ==n n) (translate (prog main))) ∧ (checkFrom (inWhileLabel l (main ∷ [])) (x ==n n) (translate (prog main))) else checkFrom (inParLabel l (main ∷ [])) (x ==n n) (translate (prog main))) else (if (inWhile l (main ∷ [])) then (checkFrom (inWhileLabel l (main ∷ [])) (x ==n n) (translate (prog main))) else (checkFrom l (x ==n n) (translate (prog main))))
+--after l => □ (x ==b y) , prg = {!!}
+after l => □ (isTrue (vB x)) , prog main = if (inPar l (main ∷ [])) then (if (inWhile l (main ∷ [])) then (checkFrom (inParLabel l (main ∷ [])) (isTrue (vB x)) (translate (prog main))) ∧ (checkFrom (inWhileLabel l (main ∷ [])) (isTrue (vB x)) (translate (prog main))) else checkFrom (inParLabel l (main ∷ [])) (isTrue (vB x)) (translate (prog main))) else (if (inWhile l (main ∷ [])) then (checkFrom (inWhileLabel l (main ∷ [])) (isTrue (vB x)) (translate (prog main))) else (checkFrom l (isTrue (vB x)) (translate (prog main))))
+_ => _ , _ = false
+

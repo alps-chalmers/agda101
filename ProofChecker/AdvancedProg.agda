@@ -13,7 +13,6 @@ open import Data.Bool
 open import Translator
 open import Truths
 {-****************************-}
-
 {-
   Example of a simple Program (see Program):
 prog
@@ -44,9 +43,6 @@ advProg = prog main
         p4 = while (s 4) (bVar (vB "x")) p5
         p2 = par (s 2) (p3 ∷ (p4 ∷ []))
         main = block (s 0) (p1 ∷ p2 ∷ [])
-
-s1 : Seg
-s1 = seg (s 1) < (vN "x") :=n 1 >
 
 
 advProof : Proof
