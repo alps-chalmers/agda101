@@ -11,7 +11,7 @@ data NVar : Set where
 
 data NExpr : Set where
   _N+_   : NExpr -> NExpr -> NExpr
-  -- _N*_   : NExpr -> NExpr -> NExpr
+  _N*_   : NExpr -> NExpr -> NExpr
   constN : N -> NExpr
   rvarN  : NVar -> NExpr
 
@@ -20,6 +20,9 @@ data BExpr : Set where
   rvarB  : BVar -> BExpr
   _N>_   : NExpr -> NExpr -> BExpr
   _N<_   : NExpr -> NExpr -> BExpr
+  _N>=_   : NExpr -> NExpr -> BExpr
+  _N<=_   : NExpr -> NExpr -> BExpr
+  _N=_   : NExpr -> NExpr -> BExpr
 
 data Statement : Set where
   assignN     : NVar -> NExpr -> Statement
