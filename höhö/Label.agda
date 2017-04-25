@@ -10,3 +10,4 @@ open import N
 {- a label is used as a reference to a code segment - see more in Program -}
 data Label : Set where
   l : N -> Label
+

@@ -2,10 +2,11 @@ module LTL where
 
 open import Bool
 open import N
---open import CPL
 open import Statement
 open import Props
 open import Label
+
+import Labels
 
 data Program : Set where
   program : Program
@@ -40,10 +41,11 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                       p ⊢ (r ∨ q)
 
 
-
-  ∨-e    : {p q r : Props} ->       (((p ⊃ r) ∧ 
-                                      (q ⊃ r)) ∧ 
-                                      (p ∨ q)) ⊢ r
+  ca : {p q r s : Props} ->           p ⊢ (q ⊃ s) ->
+                                      p ⊢ (r ⊃ s) ->
+                                      p ⊢ (q ∨ r) ->
+                                      ---------------
+                                      p ⊢ s
 
   mp     : {p q r : Props} ->         p ⊢ (q ⊃ r) ->
                                       p ⊢ q ->
@@ -68,6 +70,10 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                     ---------------
                                     p ⊢ (q ⊃ (◇ r))
 
+  TL4 : {p q r : Props} ->          p ⊢ (▢ (q ∧ r)) ->
+                                    -------------------
+                                    p ⊢ ((▢ q) ∧ (▢ r))
+
   imp-eq1 : {p q r : Props} ->      p ⊢ (q ⊃ r) ->
                                     ------------
                                     p ⊢ ((¬ q) ∨ r)
@@ -87,9 +93,30 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                     ---------------
                                     p ⊢ (q ⊃ s)
 
+  ◇-hs : {p q r s : Props} ->       p ⊢ (q ⊃ (◇ r)) ->
+                                    p ⊢ (r ⊃ (◇ s)) ->
+                                    -------------------
+                                    p ⊢ (q ⊃ (◇ s))
+
+  weaken : {p q r : Props} ->       (p ∧ q) ⊢ r ->
+                                    --------------
+                                    p ⊢ (q ⊃ r)
+  ▢-e : {p q : Props} ->            p ⊢ (▢ q) ->
+                                    -------------
+                                    p ⊢ q
+
+  ◇-i : {p q : Props} ->            p ⊢ q ->
+                                    -----------
+                                    p ⊢ (◇ q)
+
+  ⊤-i : {q : Props} ->               ⊤ ⊢ q ->
+                                    (p : Props) ->
+                                    --------------
+                                    p ⊢ q
+
 
 data _⊨_ : Program -> Props -> Set where
-  ⊤-i : {p : Props} ->            (prog : Program) ->
+  d-⊤-i : {p : Props} ->          (prog : Program) ->
                                   ⊤ ⊢ p ->
                                   ----------------------
                                   prog ⊨ p
@@ -130,11 +157,19 @@ data _⊨_ : Program -> Props -> Set where
                                   (l2 : Label) ->
                                   -----------------
                                   prog ⊨ ▢ ((after l1 ⊃ (at l2)))
+
   inside-while :                  (prog : Program) ->
                                   (l : Label) ->
                                   (p : Props) ->
                                   -------------
-                                  prog ⊨ (▢ ((inside l) ⊃ p))
+                                  prog ⊨ ((inside l) ⊃ p)
+
+  wer :                           (prog : Program) ->
+                                  (l : Label) ->
+                                  (p : Props) ->
+                                  --------------
+                                  prog ⊨ (▢ (((at Labels.c) ∧ (▢ (¬ p))) ⊃
+                                          (◇ (after Labels.c))))
 
 ∧-comm : {p q r : Props} -> p ⊢ (q ∧ r) -> p ⊢ (r ∧ q)
 ∧-comm proof = ∧-i (∧-e2 proof) (∧-e1 proof)
@@ -144,4 +179,16 @@ make-implication p q = imp-eq2 (∨-i2 (identity p) (¬ q))
 
 extract-ltl : {prog : Program} -> {p : Props} ->  (prog ⊨ p) -> Props
 extract-ltl {prog} {p} _ = p
+
+apply-proof : {prog : Program} {p q : Props} -> prog ⊨ p ->
+                                                p ⊢ q ->
+                                                ------------
+                                                prog ⊨ q
+
+apply-proof {prog} {p} {q} sat proof = d-mp (d-⊤-i prog (nd proof)) sat
+
+
+
+
+
 
