@@ -131,7 +131,7 @@ data _⊢_ : Statement -> Props -> Set where        -- descriptions of the rules
 --------------------------------                                      
 --Owicki Lamport Liveness Rules
 --------------------------------
-      -- Rule [???]: Atomic assignment axiom
+    -- Rule [???]: Atomic assignment axiom
   aaa-n : (x : NVar) ->
           (n : NExpr) ->                  (assignN x n) ⊢
                                           ((at (assignN x n)) ~>
