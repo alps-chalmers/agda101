@@ -14,10 +14,6 @@ data Program : Set where
 
 data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
 
-  assume :                            (p : Props) ->
-                                      (q : Props) ->
-                                      --------------
-                                      p ⊢ q
 
   identity :                          (p : Props) ->
                                       --------------
@@ -34,8 +30,15 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                       p ⊢ r
 
 
-  ∨-i1   : {p q : Props} ->           p ⊢ (p ∨ q)
-  ∨-i2   : {p q : Props} ->           q ⊢ (p ∨ q)
+  ∨-i1   : {p q : Props} ->           p ⊢ q ->
+                                      (r : Props) ->
+                                      --------
+                                      p ⊢ (q ∨ r)
+  ∨-i2   : {p q : Props} ->           p ⊢ q ->
+                                      (r : Props) ->
+                                      --------
+                                      p ⊢ (r ∨ q)
+
 
 
   ∨-e    : {p q r : Props} ->       (((p ⊃ r) ∧ 
@@ -47,7 +50,7 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                       --------------
                                       p ⊢ r
 
-  ◇-mp     : {p q r : Props} ->       p ⊢ (q ⊃ r) ->
+  ◇-mp     : {p q r : Props} ->       p ⊢ (▢ (q ⊃ r)) ->
                                       p ⊢ (◇ q) ->
                                       --------------
                                       p ⊢ (◇ r)
@@ -56,9 +59,33 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                     --------
                                     ⊤ ⊢ (p ⊃ q)
 
+          --- things that are tautologically true are always true
+  ▢-⊤    : {p : Props} ->           ⊤ ⊢ p ->
+                                    --------
+                                    ⊤ ⊢ ▢ p
+
   TL12   : {p q r : Props} ->       p ⊢ (q ~> r) ->
                                     ---------------
                                     p ⊢ (q ⊃ (◇ r))
+
+  imp-eq1 : {p q r : Props} ->      p ⊢ (q ⊃ r) ->
+                                    ------------
+                                    p ⊢ ((¬ q) ∨ r)
+
+  imp-eq2 : {p q r : Props} ->      p ⊢ ((¬ q) ∨ r) ->
+                                    ------------
+                                    p ⊢ (q ⊃ r)
+
+  ⊃-comb : {p q r s : Props} ->       p ⊢ (q ⊃ r) ->
+                                    p ⊢ (q ⊃ s) ->
+                                    --------------
+                                    p ⊢ (q ⊃ (r ∧ s))
+
+
+  hs : {p q r s : Props} ->         p ⊢ (q ⊃ r) ->
+                                    p ⊢ (r ⊃ s) ->
+                                    ---------------
+                                    p ⊢ (q ⊃ s)
 
 
 data _⊨_ : Program -> Props -> Set where
@@ -71,7 +98,7 @@ data _⊨_ : Program -> Props -> Set where
   ▢-i :                           (prog : Program) ->
                                   (p : Props) ->
                                   ------------------
-                                  prog ⊨ (p ⊃ (▢ p))
+                                  prog ⊨ (▢ (p ⊃ (▢ p)))
 
   aar :                           (prog : Program) ->
                                   (l : Label) ->
@@ -94,6 +121,26 @@ data _⊨_ : Program -> Props -> Set where
                                   -------------
                                   prog ⊨ ((at l) ~> ((after l) ∧ ¬ (var b)))
 
+  assume :                            (prog : Program) ->
+                                      (p : Props) ->
+                                      --------------
+                                      prog ⊨ p
+  after-while :                   (prog : Program) ->
+                                  (l1 : Label) ->
+                                  (l2 : Label) ->
+                                  -----------------
+                                  prog ⊨ ▢ ((after l1 ⊃ (at l2)))
+  inside-while :                  (prog : Program) ->
+                                  (l : Label) ->
+                                  (p : Props) ->
+                                  -------------
+                                  prog ⊨ (▢ ((inside l) ⊃ p))
+
+∧-comm : {p q r : Props} -> p ⊢ (q ∧ r) -> p ⊢ (r ∧ q)
+∧-comm proof = ∧-i (∧-e2 proof) (∧-e1 proof)
+
+make-implication : (p : Props) -> (q : Props) -> p ⊢ (q ⊃ p)
+make-implication p q = imp-eq2 (∨-i2 (identity p) (¬ q))
 
 extract-ltl : {prog : Program} -> {p : Props} ->  (prog ⊨ p) -> Props
 extract-ltl {prog} {p} _ = p
