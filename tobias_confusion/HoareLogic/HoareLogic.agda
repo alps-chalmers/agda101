@@ -13,10 +13,14 @@ _N==_ : NExpr -> NExpr -> Bool
 (_ N* _) N== _ = false
 (n N+ m) N== (k N+ l) = (n N== m) and (k N== l)
 (_ N+ _) N== _ = false
+(n N- m) N== (k N- l) = (n N== m) and (k N== l)
+(_ N- _) N== _ = false
 constN x N== constN y = x == y
 constN _ N== _ = false
 rvarN (nvar n) N== rvarN (nvar m) = n == m
 rvarN _ N== _ = false
+static n N== static m = n N== m --maybe always false
+static n N== _ = false
 
 replaceEqualN : NExpr -> N -> N -> NVar -> NExpr
 replaceEqualN _ zero zero x = rvarN x
@@ -31,10 +35,14 @@ replaceNN (n N* m) _ _ = (n N* m)
 replaceNN (n N+ m) (k N+ l) x                  =
     if (n N== k) and (m N== l) then (rvarN x) else ((replaceNN n (k N+ l) x) N+ (replaceNN m (k N+ l) x))
 replaceNN (n N+ m) x y                         = (replaceNN n x y) N+ (replaceNN m x y)
+replaceNN (n N- m) (k N- l) x                  =
+    if (n N== k) and (m N== l) then (rvarN x) else ((replaceNN n (k N- l) x) N+ (replaceNN m (k N- l) x))
+replaceNN (n N- m) x y                         = (replaceNN n x y) N- (replaceNN m x y)
 replaceNN (constN n) (constN m) x              = replaceEqualN (constN n) n m x
 replaceNN (constN n) _ _                       = (constN n)
 replaceNN (rvarN (nvar n)) (rvarN (nvar m)) x  = replaceEqualN (rvarN (nvar n)) n m x
 replaceNN (rvarN n) _ _                        = (rvarN n)
+replaceNN (static n) _ _                       = static n
 
 replaceBN : BExpr -> NExpr -> NVar -> BExpr
 replaceBN (constB x) _ _  = (constB x)
@@ -90,18 +98,3 @@ data _[_]_ : Props -> Statement -> Props -> Set where
                                               (beval b) [ s ] p ->
                                               --------------------
                                               p [ while b s ] ((¬ (beval b)) ∧ p)
-
-{-}
--- Some tests
-x = nvar N0
-y = nvar N1
-a = constN N0
-b = constN N3
-
--- (x > 0) ∧ (x < 3)
-prop1 = (beval ((rvarN x) N> a)) ∧ (beval ((rvarN x) N< b))
-test1 = replacePN prop1 (rvarN x) y
-prop2 = beval (((rvarN x) N+ a) N> b)
-test2 = replacePN prop2 ((rvarN x) N+ a) y
-test3 = replacePN prop2 ((rvarN x) N+ b) y
--}
