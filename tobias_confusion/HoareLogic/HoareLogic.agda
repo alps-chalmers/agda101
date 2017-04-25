@@ -31,7 +31,7 @@ replaceEqualN a (s n) (s m) x = replaceEqualN a n m x
 replaceNN : NExpr -> NExpr -> NVar -> NExpr
 replaceNN (n N* m) (k N* l) x =
     if (n N== k) and (m N== l) then (rvarN x) else ((replaceNN n (k N+ l) x) N* (replaceNN m (k N* l) x))
-replaceNN (n N* m) _ _ = (n N* m)
+replaceNN (n N* m) k x                         = ((replaceNN n k x) N* (replaceNN m k x))
 replaceNN (n N+ m) (k N+ l) x                  =
     if (n N== k) and (m N== l) then (rvarN x) else ((replaceNN n (k N+ l) x) N+ (replaceNN m (k N+ l) x))
 replaceNN (n N+ m) x y                         = (replaceNN n x y) N+ (replaceNN m x y)
@@ -93,8 +93,7 @@ data _[_]_ : Props -> Statement -> Props -> Set where
                                              --------------
                                               p [ composition q1 q2 ] r
 -- D3 p, b{s}p then p{while b do s} (¬b ∧ p)
-  D3   : {p t : Props}{b : BExpr}{s : Statement} ->
-                                              t ⊢ p ->
+  D3   : {p : Props}{b : BExpr}{s : Statement} ->
                                               (beval b) [ s ] p ->
                                               --------------------
                                               p [ while b s ] ((¬ (beval b)) ∧ p)

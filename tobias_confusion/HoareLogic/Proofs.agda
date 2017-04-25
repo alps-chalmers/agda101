@@ -46,3 +46,5 @@ S81 = (beval (static X N= (R N+ (Y N* (n1 N+ Q)))))
 L8  = D0-n S81 q (n1 N+ Q)
 L9  = D2 L7 L8
 L10 = D1-b L6 L9
+L11 = D3 L10
+L12 = D2 L5 L11
