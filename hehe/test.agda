@@ -26,6 +26,9 @@ module Vars where
   y = nvar N1
   z = nvar N2
 
+typeof : {A : Set} -> A -> Set
+typeof {A} _ = A
+
 prog6 = program
 
 after-b-and-p = (after Labels.b) ∧ (¬ (var Vars.p))
