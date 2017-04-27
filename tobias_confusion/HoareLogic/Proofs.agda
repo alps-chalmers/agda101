@@ -38,7 +38,7 @@ S31 = (beval (static X N= (R N+ (Y N* n0))))
 L3  = D0-n S31 q n0
 L4  = D1-b L1 L2
 L5  = D2 L4 L3
-S61 = (beval (static X N= (R N+ Y)) ∧ beval (Y N<= R))
+S61 = ((beval (Y N<= R)) ∧ (beval (static X N= (R N+ (Y N* Q)))))
 S62 = beval (static X N= ((R N- Y) N+ (Y N* (n1 N+ Q))))
 L6  = axiom (S61 ⊃ S62)
 L7  = D0-n S62 r (R N- Y)
@@ -46,5 +46,6 @@ S81 = (beval (static X N= (R N+ (Y N* (n1 N+ Q)))))
 L8  = D0-n S81 q (n1 N+ Q)
 L9  = D2 L7 L8
 L10 = D1-b L6 L9
+
 L11 = D3 L10
 L12 = D2 L5 L11

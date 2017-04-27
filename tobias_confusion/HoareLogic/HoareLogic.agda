@@ -82,18 +82,19 @@ data _[_]_ : Props -> Statement -> Props -> Set where
                                               p [ q ] r ->
                                               --------------
                                               p [ q ] s
+
   D1-b : {p r s t : Props}{q : Statement} ->  t ⊢ (s ⊃ p) ->
                                               p [ q ] r ->
                                               --------------
-                                              p [ q ] r
+                                              s [ q ] r
 -- D2 p{q1}r1, r1{q2}r then p{q1;q2}r
   D2   : {p r1 r : Props}{q1 q2 : Statement} ->
                                               p [ q1 ] r1 ->
                                               r1 [ q2 ] r ->
                                              --------------
                                               p [ composition q1 q2 ] r
--- D3 p, b{s}p then p{while b do s} (¬b ∧ p)
+-- D3 b{s}p then p{while b do s} (¬b ∧ p)
   D3   : {p : Props}{b : BExpr}{s : Statement} ->
-                                              (beval b) [ s ] p ->
+                                              ((beval b) ∧ p) [ s ] p ->
                                               --------------------
                                               p [ while b s ] ((¬ (beval b)) ∧ p)
