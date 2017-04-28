@@ -12,6 +12,7 @@ open import ValidProof
 open import Data.Bool
 open import Translator
 open import Truths
+open import SafetyVerifier
 {-****************************-}
 {-
   Example of a simple Program (see Program):
@@ -28,8 +29,6 @@ prog
         seg (s 3) < vN "y" :=n nat 1 > ∷
       ) ∷
       []
-
-
     ) ∷
     []
   )
@@ -62,7 +61,9 @@ advProof = proof prf
     -- at s3, at s4
     r7 = pStep (progR (assRule (at (s 3))))
     -- after s3 ∧ ∼ x , at s4
-    r8 = pStep (customR 0 (after (s 3) ∧' ∼ (isTrue (vB "x"))) (□ ((after (s 3) ∧' ∼ (isTrue (vB "x"))))))
+    r8 = if ((after (s 3)) => (□ (after (s 3) ∧' ∼ (isTrue (vB "x")))) , advProg) then (pStep
+                         (customR 0 (after (s 3) ∧' ∼ (isTrue (vB "x")))
+                          (□ (after (s 3) ∧' ∼ (isTrue (vB "x")))))) else (pStep (customR 0 ⊥ ⊥))
     -- □ (after s3 ∧ ∼ x) , at s4
     r9 = pStep (progR (whileRule (at (s 4))))
     -- □ (after s3 ∧ ∼ x) , (at s5 ∧ x) ∨ (after s4 ∧ ~ x)

@@ -10,3 +10,6 @@ open import Data.Nat
 {- a label is used as a reference to a code segment - see more in Program -}
 data Label : Set where
   s : ℕ -> Label
+
+labelNum : Label → ℕ
+labelNum (s x) = x
