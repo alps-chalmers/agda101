@@ -1,5 +1,5 @@
 
--- Module used for representing concurrent programs in agda.
+-- Module used for representing concurrent Procrams in agda.
 
 module Program where
 
@@ -9,20 +9,23 @@ open import Data.String
 open import Data.Bool
 open import LTL
 
+-- A process starting at at label i
+data Proc : (p : Label) → (l : Label) → Set where
+  proc : (p : Label) → (l : Label) → Proc p l
+
 -- Program statement representation.
 data Stm : Set where
   _:=n_ : (x : String) → (n : ℕ*) → Stm     -- Nat assignment
   _:=b_ : (x : String) → (b : Bool*) → Stm  -- Bool assignment
-  _||_  : (a : Label) → (b : Label) → Stm   -- a and b exectued in parallel
+  _||_  : ∀{p₁ p₂ a b} → Proc p₁ a → Proc p₂ b → Stm   -- a and b exectued in parallel
   if    : (b : Bool*) → (l : Label) → Stm   -- if-statement
   while : (b : Bool*) → (l : Label) → Stm   -- while-statement
-  fin   : (l : Label) → Stm
+  fin   : ∀{p s} → (pr : Proc p s) → Stm
 
--- Program segment representation. A segment is a labled statement.
+-- Segment representation. A segment is a labled statement and belongs to a process.
 data Seg : Label → Stm → Label → Set where
   seg : (l₁ : Label) → (stm : Stm) → (l₂ : Label) → Seg l₁ stm l₂
 
--- A program starting at at label i
-data Prog : (i : Label) → (n : ℕ) → Set where
-  prog : (i : Label) → Prog i 0
-  _⋆_  : ∀{i n} → Prog i n → (φ : LTL) → Prog i (n + 1) -- Represents assumptions
+-- Program representation. Takes a single main process as argument.
+data Prog : {p l : Label} → (ps : Proc p l) → Set where
+  prog : {p l : Label} → (ps : Proc p l) → Prog ps

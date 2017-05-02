@@ -7,68 +7,67 @@ open import Data.Bool as Bool using (Bool; true; false)
 open import LTL
 open import Program
 
--- pr ⊨ φ, the program pr satiesfies φ when starting at the segment labled i.
+-- pr ⊨ φ, the Procram pr satiesfies φ when starting at the segment labled i.
 
-data _⊨_ : {i : Label} {n : ℕ} → (pr : Prog i n) → (φ : LTL) → Set where
+data _⊨_ : {i l : Label} {pr : Proc i l} → (prg : Prog pr) → (φ : LTL) → Set where
 
-  -- Program Rules
-  init      : ∀ {i n}                           → (p : Prog i n) → p ⊨ (at i)
-  :=n-R     : ∀ {i n l l' x v} {p : Prog i n}   → p ⊨ ◇ (at l) → Seg l (x :=n v) l' → p ⊨ ◇ (after l ∧ ("x" ==n v))
-  :=b-T-R   : ∀ {i n l l' x} {p : Prog i n}     → p ⊨ ◇ (at l) → Seg l (x :=b (bool true)) l' → p ⊨ ◇ (after l ∧ (tr (var x)))
-  :=b-F-R   : ∀ {i n l l' x} {p : Prog i n}     → p ⊨ ◇ (at l) → Seg l (x :=b (bool false)) l' → p ⊨ ◇ (after l ∧ (∼ (tr (var x))))
-  :=bVar-R  : ∀ {i n l l' x y} {p : Prog i n}   → p ⊨ ◇ (at l) → Seg l (x :=b (var y)) l' → p ⊨ ◇ (after l ∧ (x ==b (var y)))
-  flow      : ∀ {i n l l' stm} {p : Prog i n}   → p ⊨ ◇ (after l) → Seg l stm l' → p ⊨ ◇ (at l')
-  parRule   : ∀ {i n l l' a b} {p : Prog i n}   → p ⊨ ◇ (at l) → Seg l (a || b) l' → p ⊨ ◇ ((at a) ∧ (at b))
-  exitPar   : ∀ {i n l l' a b} {p : Prog i n}   → p ⊨ ◇ (□ ((after a) ∧ (after b))) → Seg l (a || b) l' → p ⊨ ◇ (after l)
-  exitWhile : ∀ {i n l l' s b} {p : Prog i n}   → p ⊨ ◇ ((at l) ∧ (□ (∼ (tr b)))) → Seg l (while b s) l' → p ⊨ ◇ (after l)
-  exWhile-F : ∀ {i n l l' s} {p : Prog i n}     → p ⊨ ◇ (at l) → Seg l (while (bool false) s) l' → p ⊨ ◇ (after l)
-  exWhile-E : ∀ {i n l l' s x y} {p : Prog i n} → p ⊨ ◇ (at l) → Seg l (while ((nat x) <' (nat y)) s) l' → p ⊨ ◇ (after l)
-  ifRule    : ∀ {i n l l' s b} {p : Prog i n}   → p ⊨ ◇ (at l) → Seg l (if b s) l' → p ⊨ ◇ ((at s) ∨ (after l))
-  at=>af'   : ∀ {i n l} {p : Prog i n}          → p ⊨ ◇ (at l) → p ⊨ ◇ (∼ (after l))
-  fin-R     : ∀ {i n l f} {p : Prog i n}     → p ⊨ ◇ (at l) → Seg l (fin f) l → p ⊨ ◇ (□ (after f))
+  -- Procram Rules
+  init      : ∀ {p i} {ps : Proc p i} {pr : Prog ps}                → pr ⊨ (at i)
+  :=n-R     : ∀ {p se l l' x v} {ps : Proc p se} {pr : Prog ps}     → pr ⊨ ◇ (at l) → Seg l (x :=n v) l' → pr ⊨ ◇ (after l ∧ ("x" ==n v))
+  :=b-T-R   : ∀ {p se l l' x} {ps : Proc p se} {pr : Prog ps}       → pr ⊨ ◇ (at l) → Seg l (x :=b (bool true)) l' → pr ⊨ ◇ (after l ∧ (tr (var x)))
+  :=b-F-R   : ∀ {p se l l' x} {ps : Proc p se} {pr : Prog ps}       → pr ⊨ ◇ (at l) → Seg l (x :=b (bool false)) l' → pr ⊨ ◇ (after l ∧ (∼ (tr (var x))))
+  :=bVar-R  : ∀ {p se l l' x y} {ps : Proc p se} {pr : Prog ps}     → pr ⊨ ◇ (at l) → Seg l (x :=b (var y)) l' → pr ⊨ ◇ (after l ∧ (x ==b (var y)))
+  flow      : ∀ {p se l l' stm} {ps : Proc p se} {pr : Prog ps}     → pr ⊨ ◇ (after l) → Seg l stm l' → pr ⊨ ◇ (at l')
+  exitWhile : ∀ {p se l l' st b} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ◇ ((at l) ∧ (□ (∼ (tr b)))) → Seg l (while b st) l' → pr ⊨ ◇ (after l)
+  exWhile-F : ∀ {p se l l' s} {ps : Proc p se} {pr : Prog ps}       → pr ⊨ ◇ (at l) → Seg l (while (bool false) s) l' → pr ⊨ ◇ (after l)
+  exWhile-E : ∀ {p se l l' st x y} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ◇ (at l) → Seg l (while ((nat x) <' (nat y)) st) l' → pr ⊨ ◇ (after l)
+  ifRule    : ∀ {p se l l' st b} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ◇ (at l) → Seg l (if b st) l' → pr ⊨ ◇ ((at st) ∨ (after l))
+  at=>af'   : ∀ {p se l} {ps : Proc p se} {pr : Prog ps}            → pr ⊨ ◇ (at l) → pr ⊨ ◇ (∼ (after l))
+  fin-R     : ∀ {p se l p' i} {ps : Proc p se} {pr : Prog ps} {ps' : Proc p' i} → pr ⊨ ◇ (at l) → Seg l (fin ps') l → pr ⊨ ◇ (after p')
+  exitPar   : ∀ {p se p₁ p₂ l l' a₀ b₀} {ps : Proc p se} {pr : Prog ps} {a : Proc p₁ a₀} {b : Proc p₂ b₀} → pr ⊨ ◇ (after p₁) → pr ⊨  ◇ (after p₂) → Seg l (a || b) l' → pr ⊨ ◇ (after l)
+  parRule   : ∀ {p se p₁ p₂ l l' a₀ b₀} {ps : Proc p se} {pr : Prog ps} {a : Proc p₁ a₀} {b : Proc p₂ b₀} → pr ⊨ ◇ (at l) → Seg l (a || b) l' → pr ⊨ ◇ ((at a₀) ∧ (at b₀))
 
   -- LTL Rules
-  T-i       : ∀ {i n} {p : Prog i n}        → p ⊨ T
-  var       : ∀ {i n φ}   {p : Prog i n}    → (p ⋆ φ) ⊨ φ
-  LEM       : ∀ {i n φ}   {p : Prog i n}    → p ⊨ (φ ∨ (∼ φ))
-  TL6       : ∀ {i n φ}   {p : Prog i n}    → p ⊨ ((◇ φ) ∨ (□ (∼ φ)))
-  ⊥-e       : ∀ {i n φ}   {p : Prog i n}    → p ⊨ ⊥ → p ⊨ φ
-  in⇒at     : ∀ {i n l}   {p : Prog i n}    → p ⊨ (in' l) → p ⊨ (at l)
-  ∧-e₁      : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ (φ ∧ ψ) → p ⊨ φ
-  ∧-e₂      : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ (φ ∧ ψ) → p ⊨ ψ
-  ∧-i       : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ φ → p ⊨ ψ → p ⊨ (φ ∧ ψ)
-  ⇒-e       : ∀ {i n φ ψ} {p : Prog i n}    → (p ⋆ φ) ⊨ ψ → p ⊨ φ → p ⊨ ψ
-  ∨-i₁      : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ φ → p ⊨ (φ ∨ ψ)
-  ∨-i₂      : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ ψ → p ⊨ (φ ∨ ψ)
-  ⇒-i       : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ ((∼ φ) ∨ ψ) → p ⊨ (φ ⇒ ψ)
-  □⇒~>      : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ (□(φ ⇒ ψ)) → p ⊨ (φ ~> ψ)
-  □-∧-e₁    : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ □(φ ∧ ψ) → p ⊨ □ φ
-  □-∧-e₂    : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ □(φ ∧ ψ) → p ⊨ □ ψ
-  □-∧-exp   : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ (□(φ ∧ ψ)) → p ⊨ ((□ φ) ∧ (□ ψ))
-  □-∨-exp   : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ (□(φ ∨ ψ)) → p ⊨ ((□ φ) ∨ (□ ψ))
-  □-◇       : ∀ {i n φ}   {p : Prog i n}    → p ⊨ □ φ → p ⊨ ◇ φ
-  ◇-i       : ∀ {i n φ}   {p : Prog i n}    → p ⊨ φ → p ⊨ ◇ φ
-  ◇-∧-exp   : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ (◇(φ ∧ ψ)) → p ⊨ ((◇ φ) ∧ (◇ ψ))
-  ◇-∧-e₁    : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ ◇ (φ ∧ ψ) → p ⊨ ◇ φ
-  ◇-∧-e₂    : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ ◇ (φ ∧ ψ) → p ⊨ ◇ ψ
-  ◇-□-∧-i   : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ ◇ (□ φ) → p ⊨ ◇ (□ ψ) → p ⊨ ◇ (□ (φ ∧ ψ))
-  ◇-∨-exp   : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ (◇(φ ∨ ψ)) → p ⊨ ((◇ φ) ∨ (◇ ψ))
-  ∨-e       : ∀ {i n φ ψ χ} {p : Prog i n}  → p ⊨ (φ ∨ ψ) → (p ⋆ φ) ⊨ χ → (p ⋆ ψ) ⊨ χ → p ⊨ χ
-  TL5       : ∀ {i n φ ψ} {p : Prog i n}    → p ⊨ ((□ φ) ∧ (□ (φ ⇒ ψ))) → p ⊨ (□ ψ)
+  T-i       : ∀ {p se} {ps : Proc p se} {pr : Prog ps}      → pr ⊨ T
+  -- var       : ∀ {ps φ}   {pr : Prog ps}    → (pr ⋆ φ) ⊨ φ
+  LEM       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ (φ ∨ (∼ φ))
+  TL6       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ((◇ φ) ∨ (□ (∼ φ)))
+  ⊥-e       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ⊥ → pr ⊨ φ
+  in⇒at     : ∀ {p se l} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ (in' l) → pr ⊨ (at l)
+  ∧-e₁      : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (φ ∧ ψ) → pr ⊨ φ
+  ∧-e₂      : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (φ ∧ ψ) → pr ⊨ ψ
+  ∧-i       : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ φ → pr ⊨ ψ → pr ⊨ (φ ∧ ψ)
+  -- ⇒-e       : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}    → (pr ⋆ φ) ⊨ ψ → pr ⊨ φ → pr ⊨ ψ
+  ∨-i₁      : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ φ → pr ⊨ (φ ∨ ψ)
+  ∨-i₂      : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ψ → pr ⊨ (φ ∨ ψ)
+  ⇒-i       : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ((∼ φ) ∨ ψ) → pr ⊨ (φ ⇒ ψ)
+  □⇒~>      : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (□(φ ⇒ ψ)) → pr ⊨ (φ ~> ψ)
+  □-∧-e₁    : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ □(φ ∧ ψ) → pr ⊨ □ φ
+  □-∧-e₂    : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ □(φ ∧ ψ) → pr ⊨ □ ψ
+  □-∧-exp   : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (□(φ ∧ ψ)) → pr ⊨ ((□ φ) ∧ (□ ψ))
+  □-∨-exp   : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (□(φ ∨ ψ)) → pr ⊨ ((□ φ) ∨ (□ ψ))
+  □-◇       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ □ φ → pr ⊨ ◇ φ
+  ◇-i       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ φ → pr ⊨ ◇ φ
+  ◇-∧-exp   : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (◇(φ ∧ ψ)) → pr ⊨ ((◇ φ) ∧ (◇ ψ))
+  ◇-∧-e₁    : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ◇ (φ ∧ ψ) → pr ⊨ ◇ φ
+  ◇-∧-e₂    : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ◇ (φ ∧ ψ) → pr ⊨ ◇ ψ
+  ◇-□-∧-i   : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ◇ (□ φ) → pr ⊨ ◇ (□ ψ) → pr ⊨ ◇ (□ (φ ∧ ψ))
+  ◇-∨-exp   : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (◇(φ ∨ ψ)) → pr ⊨ ((◇ φ) ∨ (◇ ψ))
+  -- ∨-e       : ∀ {ps φ ψ χ} {pr : Prog ps}  → pr ⊨ (φ ∨ ψ) → (pr ⋆ φ) ⊨ χ → (pr ⋆ ψ) ⊨ χ → pr ⊨ χ
+  TL5       : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ((□ φ) ∧ (□ (φ ⇒ ψ))) → pr ⊨ (□ ψ)
   -- Custom axioms
-  custom    : ∀ {i n} {p : Prog i n} → (φ : LTL) → (ψ : LTL) → p ⊨ φ → p ⊨ ψ
-
-
+  custom    : ∀ {p se} {ps : Proc p se} {pr : Prog ps} → (φ : LTL) → (ψ : LTL) → pr ⊨ φ → pr ⊨ ψ
 
 {-==============================
             THEOREMS
 ==============================-}
 
-∧-comm : ∀{l n φ ψ} {p : Prog l n} → p ⊨ (φ ∧ ψ) → p ⊨ (ψ ∧ φ)
+
+∧-comm : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps} → pr ⊨ (φ ∧ ψ) → pr ⊨ (ψ ∧ φ)
 ∧-comm p = ∧-i (∧-e₂ p) (∧-e₁ p)
 
-∨-comm : ∀{l n φ ψ} {p : Prog l n} → p ⊨ (φ ∨ ψ) → p ⊨ (ψ ∨ φ)
-∨-comm p = ∨-e p (∨-i₂ var) (∨-i₁ var)
+-- ∨-comm : ∀{i l n φ ψ} {pr : Proc i l} → pr ⊨ (φ ∨ ψ) → pr ⊨ (ψ ∨ φ)
+-- ∨-comm p = ∨-e p (∨-i₂ var) (∨-i₁ var)
 
-∧⇒∨ : ∀{l n} {p : Prog l n} {φ ψ : LTL} → p ⊨ (φ ∧ ψ) → p ⊨ (φ ∨ ψ)
+∧⇒∨ : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps} → pr ⊨ (φ ∧ ψ) → pr ⊨ (φ ∨ ψ)
 ∧⇒∨ p = ∨-i₁ (∧-e₁ p)
