@@ -10,7 +10,6 @@ open import Data.Bool as Bool using (Bool; true; false)
 -- * Index Label over ℕ
 -- * Fix fin
 -- * Implement if/while
--- Divide a program into sub-programs!!!
 
 --============================   Simple Program   ==============================
 
@@ -65,10 +64,10 @@ s6 = seg (s 6) (fin p2) (s 6)
 s7 : Seg (s 7) (fin p0) (s 7)
 s7 = seg (s 7) (fin p0) (s 7)
 
--- Termination proof for the program.
+-- Termination lemmas.
 
 p0=>s1 : {pr : Prog p0} → pr ⊨ ◇ (at (s 1))
-p0=>s1 {pr} = flow (∧-e₁ (◇-∧-exp (:=n-R (◇-i init) s0))) s0
+p0=>s1 = flow (∧-e₁ (◇-∧-exp (:=n-R (◇-i init) s0))) s0
 
 p0=>s2 : {pr : Prog p0} → pr ⊨ ◇ (at (s 2))
 p0=>s2 = flow (◇-∧-e₁ (:=n-R p0=>s1 s1)) s1
@@ -91,7 +90,7 @@ p0=>p2' = fin-R (flow p0=>s5' s5) s6
 p0=>s7 : {pr : Prog p0} → pr ⊨ ◇ (at (s 7))
 p0=>s7 = flow (exitPar p0=>p1' p0=>p2' s2) s2
 
--- Final proof of termination
+-- Proof of termination
 
 p0=>p0' : {pr : Prog p0} → pr ⊨ ◇ (after (prc 0))
 p0=>p0' = fin-R p0=>s7 s7
@@ -100,108 +99,159 @@ p0=>p0' = fin-R p0=>s7 s7
 --============================   While-Program   ===============================
 
 {- == The program ==
-  s0: x = 0
-  s1: cobegin
-    s2: x = 1
-    □
-    s3: while false {
-      s4: x = 6
-    }
-  coend
-  s5: x = 5
+  p0:
+    s0: x = 0
+    s1: cobegin
+      p1:
+        s2: x = 1
+        s3: fin p1
+      □
+      p2:
+        s4: while false {
+          s5: x = 6
+        }
+        s6: fin p2
+    coend
+    s7: x = 5
+    s8: fin p0
 -}
-{-
+
+pw0 : Proc (prc 0) (s 0)
+pw0 = proc (prc 0) (s 0)
+
+pw1 : Proc (prc 1) (s 2)
+pw1 = proc (prc 1) (s 2)
+
+pw2 : Proc (prc 2) (s 4)
+pw2 = proc (prc 2) (s 4)
+
+
 w0 : Seg (s 0) ("x" :=n (nat 0)) (s 1)
 w0 = seg (s 0) ("x" :=n (nat 0)) (s 1)
 
-w2 : Seg (s 2) ("x" :=n (nat 1)) (fin (s 2))
-w2 = seg (s 2) ("x" :=n (nat 1)) (fin (s 2))
+w1 : Seg (s 1) (pw1 || pw2) (s 7)
+w1 = seg (s 1) (pw1 || pw2) (s 7)
 
-w4 : Seg (s 4) ("x" :=n (nat 6)) (s 3)
-w4 = seg (s 4) ("x" :=n (nat 6)) (s 3)
+w2 : Seg (s 2) ("x" :=n (nat 1)) (s 3)
+w2 = seg (s 2) ("x" :=n (nat 1)) (s 3)
 
-w3 : Seg (s 3) (while (bool false) (s 4)) (fin (s 3))
-w3 = seg (s 3) (while (bool false) (s 4)) (fin (s 3))
+w3 : Seg (s 3) (fin pw1) (s 3)
+w3 = seg (s 3) (fin pw1) (s 3)
 
-w1 : Seg (s 1) ((s 2) || (s 3)) (s 5)
-w1 = seg ((s 1)) ((s 2) || (s 3)) (s 5)
+w4 : Seg (s 4) (while (bool false) (s 5)) (s 6)
+w4 = seg (s 4) (while (bool false) (s 5)) (s 6)
 
-w5 : Seg (s 5) ("x" :=n (nat 5)) (fin (s 5))
-w5 = seg (s 5) ("x" :=n (nat 5)) (fin (s 5))
+w5 : Seg (s 5) ("x" :=n (nat 6)) (s 3)
+w5 = seg (s 5) ("x" :=n (nat 6)) (s 3)
 
--}
--- Termination proof
-{-
-w0=>w1 : ∀{n} {p : Proc (s 0) n} → p ⊨ (at (s 1))
-w0=>w1 {n} {p} = flow (∧-e₁ (:=n-R (init p) w0)) w0
+w6 : Seg (s 6) (fin pw2) (s 6)
+w6 = seg (s 6) (fin pw2) (s 6)
 
-w1=>w2∧w3 : ∀{n} {p : Proc (s 0) n} → p ⊨ (at (s 1)) → p ⊨ ((at (s 2)) ∧ (at (s 3)))
-w1=>w2∧w3 p = parRule p w1
+w7 : Seg (s 7) ("x" :=n (nat 5)) (s 8)
+w7 = seg (s 7) ("x" :=n (nat 5)) (s 8)
 
-w2∧w3=>w2'∧w3' : ∀{n} {p : Proc (s 0) n} → p ⊨ ((at (s 2)) ∧ (at (s 3))) → p ⊨ ((after (s 2)) ∧ (after (s 3)))
-w2∧w3=>w2'∧w3' p = ∧-i (∧-e₁ (:=n-R (∧-e₁ p) w2)) (exWhile-F (∧-e₂ p) w3)
+w8 : Seg (s 8) (fin pw0) (s 8)
+w8 = seg (s 8) (fin pw0) (s 8)
 
-w2'∧w3'=>w5 : ∀{n} {p : Proc (s 0) n} → p ⊨ ((after (s 2)) ∧ (after (s 3))) → p ⊨ (at (s 5))
-w2'∧w3'=>w5 p = flow (exitPar (w2∧w3=>w2'∧w3' (w1=>w2∧w3 w0=>w1)) w1) w1
+-- Termination lemmas
 
-w5=>w5' : ∀{n} {p : Proc (s 0) n} → p ⊨ (at (s 5)) → p ⊨ (after (s 5))
-w5=>w5' p = ∧-e₁ (:=n-R (w2'∧w3'=>w5 (w2∧w3=>w2'∧w3' (w1=>w2∧w3 w0=>w1))) w5)
+pw0=>w2∧w4 : {pr : Prog pw0} → pr ⊨ ◇ ((at (s 2)) ∧ (at (s 4)))
+pw0=>w2∧w4 = parRule (flow (◇-∧-e₁ (:=n-R (◇-i init) w0)) w0) w1
 
--- Proof of termination and property of variable "x"
-s0=>x==5∧s5' : ∀{n} {p : Proc (s 0) n} → p ⊨ (at (s 0)) → p ⊨ (("x" ==n (nat 5)) ∧ (after (s 5)))
-s0=>x==5∧s5' p = ∧-comm (:=n-R (w2'∧w3'=>w5 (w2∧w3=>w2'∧w3' (w1=>w2∧w3 w0=>w1))) w5)
--}
+w2=>pw1' : {pr : Prog pw0} → pr ⊨ ◇ (at (s 2)) → pr ⊨ ◇ (after (prc 1))
+w2=>pw1' p = fin-R (flow (◇-∧-e₁ (:=n-R p w2)) w2) w3
+
+w4=>pw2' : {pr : Prog pw0} → pr ⊨ ◇ (at (s 4)) → pr ⊨ ◇ (after (prc 2))
+w4=>pw2' p = fin-R (flow (exWhile-F p w4) w4) w6
+
+pw0=>w7 : {pr : Prog pw0} → pr ⊨ ◇ (at (s 7))
+pw0=>w7 = flow (exitPar (w2=>pw1' (◇-∧-e₁ pw0=>w2∧w4)) (w4=>pw2' (◇-∧-e₂ pw0=>w2∧w4)) w1) w1
+
+-- Proof of termination
+
+pw0=>pw0' : {pr : Prog pw0} → pr ⊨ ◇ (after (prc 0))
+pw0=>pw0' = fin-R (flow (◇-∧-e₁ (:=n-R pw0=>w7 w7)) w7) w8
+
 
 --=======================   "Advanced" While Program   =========================
 
 {- == The program ==
-  s0: x = true
-  s1: cobegin
-    s2: x = false
-    □
-    s3: while x {
-      s4: y = 5
-    }
-  coend
-  s5: y = 6
+  p0:
+    s0: x = true
+    s1: cobegin
+      p1:
+        s2: x = false
+        s3: fin p1
+      □
+      p2:
+        s4: while x {
+          s5: y = 5
+        }
+        s6: fin p2
+    coend
+    s7: y = 6
+    s8: fin p0
 -}
-{-}
+
+pa0 : Proc (prc 0) (s 0)
+pa0 = proc (prc 0) (s 0)
+
+pa1 : Proc (prc 1) (s 2)
+pa1 = proc (prc 1) (s 2)
+
+pa2 : Proc (prc 2) (s 4)
+pa2 = proc (prc 2) (s 4)
+
+
 a0 : Seg (s 0) ("x" :=b (bool true)) (s 1)
 a0 = seg (s 0) ("x" :=b (bool true)) (s 1)
 
-a1 : Seg (s 1) ((s 2) || (s 3)) (s 5)
-a1 = seg ((s 1)) ((s 2) || (s 3)) (s 5)
+a1 : Seg (s 1) (pa1 || pa2) (s 7)
+a1 = seg (s 1) (pa1 || pa2) (s 7)
 
-a2 : Seg (s 2) ("x" :=b (bool false)) (fin (s 2))
-a2 = seg (s 2) ("x" :=b (bool false)) (fin (s 2))
+a2 : Seg (s 2) ("x" :=b (bool false)) (s 3)
+a2 = seg (s 2) ("x" :=b (bool false)) (s 3)
 
-a3 : Seg (s 3) (while (var "x") (s 4)) (fin (s 3))
-a3 = seg (s 3) (while (var "x") (s 4)) (fin (s 3))
+a3 : Seg (s 3) (fin pw1) (s 3)
+a3 = seg (s 3) (fin pw1) (s 3)
 
-a4 : Seg (s 4) ("y" :=n (nat 5)) (s 3)
-a4 = seg (s 4) ("y" :=n (nat 5)) (s 3)
+a4 : Seg (s 4) (while (var "x") (s 5)) (s 6)
+a4 = seg (s 4) (while (var "x") (s 5)) (s 6)
 
-a5 : Seg (s 5) ("y" :=n (nat 6)) (fin (s 5))
-a5 = seg (s 5) ("y" :=n (nat 6)) (fin (s 5))
+a5 : Seg (s 5) ("y" :=n (nat 5)) (s 3)
+a5 = seg (s 5) ("y" :=n (nat 5)) (s 3)
+
+a6 : Seg (s 6) (fin pw2) (s 6)
+a6 = seg (s 6) (fin pw2) (s 6)
+
+a7 : Seg (s 7) ("y" :=n (nat 6)) (s 8)
+a7 = seg (s 7) ("y" :=n (nat 6)) (s 8)
+
+a8 : Seg (s 8) (fin pw0) (s 8)
+a8 = seg (s 8) (fin pw0) (s 8)
 
 
 -- Termination proof
 
+pa0=>a2∧a4 : {pr : Prog pa0} → pr ⊨ ◇ ((at (s 2)) ∧ (at (s 4)))
+pa0=>a2∧a4 = parRule (flow (◇-∧-e₁ (:=b-T-R (◇-i init) a0)) w0) w1
 
-p=>a2∧a3 : ∀{n} {p : Proc (s 0) n} → p ⊨ ((at (s 2)) ∧ (at (s 3)))
-p=>a2∧a3 {n} {p} = parRule (flow (∧-e₁ (:=b-T-R (init p) a0)) a0) a1
+a2=>pa1' : {pr : Prog pa0} → pr ⊨ ◇ (at (s 2)) → pr ⊨ ◇ (after (prc 1))
+a2=>pa1' p = fin-R (flow (◇-∧-e₁ (:=b-F-R p a2)) a2) a3
 
-a2=>□~x : ∀{n} {p : Proc (s 0) n} → p ⊨ (□ (∼ (tr (var "x"))))
-a2=>□~x = □-∧-e₂ (custom (((after (s 2)) ∧ (∼ (tr (var "x"))))) ((□ ((after (s 2)) ∧ ∼ (tr (var "x"))))) ((:=b-F-R (∧-e₁ p=>a2∧a3) a2)))
+∼x=>□∼x : {pr : Prog pa0} → pr ⊨ ◇ (∼ (tr (var "x"))) → pr ⊨ ◇ (□ (∼ (tr (var "x"))))
+∼x=>□∼x p = custom (◇ (∼ (tr (var "x")))) (◇ (□ (∼ (tr (var "x"))))) p
 
-p=>a2'∧a3' : ∀{n} {p : Proc (s 0) n} → p ⊨ ((after (s 2)) ∧ (after (s 3)))
-p=>a2'∧a3' = ∧-i (∧-e₁ (:=b-F-R (∧-e₁ p=>a2∧a3) a2)) (exitWhile (∧-i (∧-e₂ p=>a2∧a3) a2=>□~x) a3)
+a4=>a4' : {pr : Prog pa0} → pr ⊨ ◇ (at (s 4)) → pr ⊨ ◇ (after (s 4))
+a4=>a4' p = exitWhile p (∼x=>□∼x (◇-∧-e₂ (:=b-F-R (◇-∧-e₁ pa0=>a2∧a4) a2))) a4
 
-p=>a1' : ∀{n} {p : Proc (s 0) n} → p ⊨ (after (s 1))
-p=>a1' = exitPar p=>a2'∧a3' a1
+a4=>pa2' : {pr : Prog pa0} → pr ⊨ ◇ (at (s 4)) → pr ⊨ ◇ (after (prc 2))
+a4=>pa2' p = fin-R (flow (a4=>a4' p) a4) a6
 
--- Final proof of Termination
+pa0=>s7 : {pr : Prog pa0} → pr ⊨ ◇ (at (s 7))
+pa0=>s7 = flow (exitPar (a2=>pa1' (◇-∧-e₁ pa0=>a2∧a4)) (a4=>pa2' (◇-∧-e₂ pa0=>a2∧a4)) a1) a1
 
-p=>x==6∧a5' : ∀{n} {p : Proc (s 0) n} → p ⊨ (("x" ==n (nat 6)) ∧ (after (s 5)))
-p=>x==6∧a5' = ∧-comm (:=n-R (flow p=>a1' a1) a5)
--}
+-- Proof of termination
+
+pa0=>pa0' : {pr : Prog pa0} → pr ⊨ ◇ (after (prc 0))
+pa0=>pa0' = fin-R (flow (◇-∧-e₁ (:=n-R pa0=>s7 a7)) a7) a8

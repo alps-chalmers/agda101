@@ -7,6 +7,10 @@ open import Data.Bool as Bool using (Bool; true; false)
 open import LTL
 open import Program
 
+-- TODO
+-- * Fix loop conditions being able to handle infinite inner loops. in => at etc.
+-- * Separate LTLRules from the rest, into ⊢.
+
 -- pr ⊨ φ, the Procram pr satiesfies φ when starting at the segment labled i.
 
 data _⊨_ : {i l : Label} {pr : Proc i l} → (prg : Prog pr) → (φ : LTL) → Set where
@@ -18,7 +22,7 @@ data _⊨_ : {i l : Label} {pr : Proc i l} → (prg : Prog pr) → (φ : LTL) �
   :=b-F-R   : ∀ {p se l l' x} {ps : Proc p se} {pr : Prog ps}       → pr ⊨ ◇ (at l) → Seg l (x :=b (bool false)) l' → pr ⊨ ◇ (after l ∧ (∼ (tr (var x))))
   :=bVar-R  : ∀ {p se l l' x y} {ps : Proc p se} {pr : Prog ps}     → pr ⊨ ◇ (at l) → Seg l (x :=b (var y)) l' → pr ⊨ ◇ (after l ∧ (x ==b (var y)))
   flow      : ∀ {p se l l' stm} {ps : Proc p se} {pr : Prog ps}     → pr ⊨ ◇ (after l) → Seg l stm l' → pr ⊨ ◇ (at l')
-  exitWhile : ∀ {p se l l' st b} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ◇ ((at l) ∧ (□ (∼ (tr b)))) → Seg l (while b st) l' → pr ⊨ ◇ (after l)
+  exitWhile : ∀ {p se l l' st b} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ◇ (at l) → pr ⊨ ◇ (□ (∼ (tr b))) → Seg l (while b st) l' → pr ⊨ ◇ (after l)
   exWhile-F : ∀ {p se l l' s} {ps : Proc p se} {pr : Prog ps}       → pr ⊨ ◇ (at l) → Seg l (while (bool false) s) l' → pr ⊨ ◇ (after l)
   exWhile-E : ∀ {p se l l' st x y} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ◇ (at l) → Seg l (while ((nat x) <' (nat y)) st) l' → pr ⊨ ◇ (after l)
   ifRule    : ∀ {p se l l' st b} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ◇ (at l) → Seg l (if b st) l' → pr ⊨ ◇ ((at st) ∨ (after l))
@@ -30,10 +34,10 @@ data _⊨_ : {i l : Label} {pr : Proc i l} → (prg : Prog pr) → (φ : LTL) �
   -- LTL Rules
   T-i       : ∀ {p se} {ps : Proc p se} {pr : Prog ps}      → pr ⊨ T
   -- var       : ∀ {ps φ}   {pr : Prog ps}    → (pr ⋆ φ) ⊨ φ
-  LEM       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ (φ ∨ (∼ φ))
-  TL6       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ((◇ φ) ∨ (□ (∼ φ)))
-  ⊥-e       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ⊥ → pr ⊨ φ
-  in⇒at     : ∀ {p se l} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ (in' l) → pr ⊨ (at l)
+  LEM       : ∀ {p se φ}   {ps : Proc p se} {pr : Prog ps}    → pr ⊨ (φ ∨ (∼ φ))
+  TL6       : ∀ {p se φ}   {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ((◇ φ) ∨ (□ (∼ φ)))
+  ⊥-e       : ∀ {p se φ}   {ps : Proc p se} {pr : Prog ps}    → pr ⊨ ⊥ → pr ⊨ φ
+  in⇒at     : ∀ {p se l}   {ps : Proc p se} {pr : Prog ps}    → pr ⊨ (in' l) → pr ⊨ (at l)
   ∧-e₁      : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (φ ∧ ψ) → pr ⊨ φ
   ∧-e₂      : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (φ ∧ ψ) → pr ⊨ ψ
   ∧-i       : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ φ → pr ⊨ ψ → pr ⊨ (φ ∧ ψ)
@@ -46,8 +50,8 @@ data _⊨_ : {i l : Label} {pr : Proc i l} → (prg : Prog pr) → (φ : LTL) �
   □-∧-e₂    : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ □(φ ∧ ψ) → pr ⊨ □ ψ
   □-∧-exp   : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (□(φ ∧ ψ)) → pr ⊨ ((□ φ) ∧ (□ ψ))
   □-∨-exp   : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (□(φ ∨ ψ)) → pr ⊨ ((□ φ) ∨ (□ ψ))
-  □-◇       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ □ φ → pr ⊨ ◇ φ
-  ◇-i       : ∀ {p se φ} {ps : Proc p se} {pr : Prog ps}    → pr ⊨ φ → pr ⊨ ◇ φ
+  □-◇       : ∀ {p se φ}   {ps : Proc p se} {pr : Prog ps}  → pr ⊨ □ φ → pr ⊨ ◇ φ
+  ◇-i       : ∀ {p se φ}   {ps : Proc p se} {pr : Prog ps}  → pr ⊨ φ → pr ⊨ ◇ φ
   ◇-∧-exp   : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ (◇(φ ∧ ψ)) → pr ⊨ ((◇ φ) ∧ (◇ ψ))
   ◇-∧-e₁    : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ◇ (φ ∧ ψ) → pr ⊨ ◇ φ
   ◇-∧-e₂    : ∀ {p se φ ψ} {ps : Proc p se} {pr : Prog ps}  → pr ⊨ ◇ (φ ∧ ψ) → pr ⊨ ◇ ψ
