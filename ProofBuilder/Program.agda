@@ -14,8 +14,9 @@ data Stm : Set where
   _:=n_ : (x : String) → (n : ℕ*) → Stm     -- Nat assignment
   _:=b_ : (x : String) → (b : Bool*) → Stm  -- Bool assignment
   _||_  : (a : Label) → (b : Label) → Stm   -- a and b exectued in parallel
-  if    : (b : Bool*) → (s : Label) → Stm   -- if-statement
-  while : (b : Bool*) → (s : Label) → Stm   -- while-statement
+  if    : (b : Bool*) → (l : Label) → Stm   -- if-statement
+  while : (b : Bool*) → (l : Label) → Stm   -- while-statement
+  fin   : (l : Label) → Stm
 
 -- Program segment representation. A segment is a labled statement.
 data Seg : Label → Stm → Label → Set where
