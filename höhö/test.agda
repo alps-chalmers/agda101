@@ -280,3 +280,51 @@ p2-41 = d-⊤-i prog6 box-2-11-4
 p2-42 = d-∧-i p2-40 p2-34
 p2-43 = d-mp p2-41 p2-42
 
+
+{--
+
+at this point p2-43 is prog6 ⊨ (at Labels.b ⊃ ◇ (after Labels.c))
+    and proved-prog is prog6 ⊨ (at Labels.b ⊃ ◇ (▢  (after Labels.b ∧ (¬ p)))
+    so if we change it to (at Labels.b ⊃ ◇ (▢ (after Labels.b) ∧ (after Labels.c
+
+--}
+after-c-inv = ▢ ((after Labels.c) ⊃ (▢ (after Labels.c)))
+
+-- box 2-12
+box-2-12-p = identity (after-c-inv ∧ (◇ (after Labels.c)))
+box-2-12-1 = ∧-e2 box-2-12-p
+box-2-12-2 = ∧-e1 box-2-12-p
+box-2-12-3 = ◇-mp box-2-12-2 box-2-12-1
+box-2-12-4 = weaken box-2-12-3
+box-2-12-5 = nd box-2-12-4
+-- end box 2-12
+
+
+
+p2-44 = ▢-i prog6 (after Labels.c)
+p2-45 = d-⊤-i prog6 box-2-12-5
+p2-46 = d-mp p2-45 p2-44
+
+-- box 2-13
+box-2-13-p = identity ((at Labels.b ⊃ ◇ (after Labels.c)) ∧
+                       ((◇ (after Labels.c)) ⊃ ◇ (▢  (after Labels.c))))
+box-2-13-1 = ∧-e1 box-2-13-p
+box-2-13-2 = ∧-e2 box-2-13-p
+box-2-13-3 = hs box-2-13-1 box-2-13-2
+box-2-13-4 = nd box-2-13-3
+-- end box 2-13
+
+p2-47 = d-⊤-i prog6 box-2-13-4
+p2-48 = d-∧-i p2-43 p2-46
+p2-49 = d-mp p2-47 p2-48
+
+--p2-50 = d-∧-i p2-
+
+-- box 2-14
+box-2-14-p = identity (◇ (▢ after-b-and-p))
+box-2-14-1 = TL4 box-2-14-p
+box-2-14-2 = ∧-e1 box-2-14-1
+
+
+
+

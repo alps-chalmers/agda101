@@ -70,6 +70,12 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                     ---------------
                                     p ⊢ (q ⊃ (◇ r))
 
+      -- palla bevisa lul
+  TL14 : {p q r s : Props} ->       p ⊢ (q ⊃ ◇ (▢ r)) ->
+                                    p ⊢ (q ⊃ ◇ (▢ s)) ->
+                                    --------------------
+                                    p ⊢ (q ⊃ ◇ (▢ (r ∧ s)))
+
   TL4 : {p q r : Props} ->          p ⊢ (▢ (q ∧ r)) ->
                                     -------------------
                                     p ⊢ ((▢ q) ∧ (▢ r))
@@ -101,6 +107,7 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
   weaken : {p q r : Props} ->       (p ∧ q) ⊢ r ->
                                     --------------
                                     p ⊢ (q ⊃ r)
+
   ▢-e : {p q : Props} ->            p ⊢ (▢ q) ->
                                     -------------
                                     p ⊢ q
