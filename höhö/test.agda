@@ -321,10 +321,44 @@ p2-49 = d-mp p2-47 p2-48
 --p2-50 = d-∧-i p2-
 
 -- box 2-14
-box-2-14-p = identity (◇ (▢ after-b-and-p))
+box-2-14-p = identity (▢ after-b-and-p)
 box-2-14-1 = TL4 box-2-14-p
 box-2-14-2 = ∧-e1 box-2-14-1
+box-2-14-3 = nd box-2-14-2
+box-2-14-4 = ▢-⊤ box-2-14-3
+-- end box 2-14
 
+-- box 2-15
+box-2-15-p = identity (◇ (▢ after-b-and-p))
+box-2-15-1 = ⊤-i box-2-14-4 (◇ (▢ after-b-and-p))
+box-2-15-2 = ◇-mp box-2-15-1 box-2-15-p
+box-2-15-3 = nd box-2-15-2
+-- end box 2-15
+
+-- box-2-16
+box-2-16-p' = ((at Labels.b) ⊃ (◇ (▢ after-b-and-p)))
+box-2-16-p = identity box-2-16-p'
+box-2-16-1 = ⊤-i box-2-15-3 box-2-16-p'
+box-2-16-2 = hs box-2-16-p box-2-16-1
+box-2-16-3 = nd box-2-16-2
+-- end box 2-16
+
+p2-50 = d-⊤-i prog6 box-2-16-3
+p2-51 = d-mp p2-50 proved-prog
+--p2-51 = d-mp
+
+-- box 2-17
+box-2-17-p = identity (((at Labels.b) ⊃ (◇ (▢ (after Labels.b)))) ∧
+                      ((at Labels.b) ⊃ (◇ (▢ (after Labels.c)))))
+box-2-17-1 = ∧-e1 box-2-17-p
+box-2-17-2 = ∧-e2 box-2-17-p
+box-2-17-3 = TL14 box-2-17-1 box-2-17-2
+box-2-17-4 = nd box-2-17-3
+-- end box 2-17
+
+p2-52 = d-⊤-i prog6 box-2-17-4
+p2-53 = d-∧-i p2-51 p2-49
+p2-54 = d-mp p2-52 p2-53
 
 
 
