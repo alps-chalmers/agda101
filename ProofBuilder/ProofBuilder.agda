@@ -77,8 +77,8 @@ p0=>p0' = fin-R p0=>s7 s7
 
 -- Showcase of branching using assumptions.
 
-s0∨s1=>s1' : {pr : Prog p0 0} → pr ⊨ ((◇ (at (s 0))) ∨ (◇ (at (s 1)))) → pr ⊨ ◇ (after (s 1))
-s0∨s1=>s1' p = ∨-e p (◇-∧-e₁ (:=n-R (flow (◇-∧-e₁ (:=n-R assume s0)) s0) s1)) (◇-∧-e₁ (:=n-R assume s1))
+s0∨s1=>s1' : {pr : Prog p0 0} → pr ⊨ ((((◇ (at (s 0))) ∨ (◇ (at (s 1))))) ⇒ (◇ (after (s 1))))
+s0∨s1=>s1' = ⇒-i (∨-e assume ((◇-∧-e₁ (:=n-R (flow (◇-∧-e₁ (:=n-R assume s0)) s0) s1))) ((◇-∧-e₁ (:=n-R assume s1))))
 
 --============================   While-Program   ===============================
 
