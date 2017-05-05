@@ -1,9 +1,9 @@
 module LTL where
 
 open import Label
-open import Data.String
 open import Data.Nat
 open import Data.Bool as Bool using (Bool; true; false)
+open import Data.String
 
 -- ℕ extended with variables.
 data ℕ* : Set where

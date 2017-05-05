@@ -68,3 +68,6 @@ test p = ∼-i p
 
 exLTL : {φ : LTL} {n : ℕ} {σ : Seq n} → σ ⊨ φ → LTL
 exLTL {φ} p = φ
+
+⇒-trans : {φ ψ χ : LTL} {n : ℕ} {σ : Seq n} → σ ⊨ (φ ⇒ ψ) → σ ⊨ (ψ ⇒ χ) → σ ⊨ (φ ⇒ χ)
+⇒-trans p q = ⇒-i (⇒-e (weak q) (⇒-e (weak p) var))
