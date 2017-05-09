@@ -1,4 +1,4 @@
-module test where
+module fig6proof where
 
 open import N
 open import Bool
