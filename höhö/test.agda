@@ -6,6 +6,7 @@ open import Props
 open import Statement
 open import Label
 open import LTL
+open import Veryfire
 import Labels
 
 
@@ -21,8 +22,15 @@ module Vars where
 typeof : {A : Set} -> A -> Set
 typeof {A} _ = A
 
-prog6 = program
+b = (assignB Labels.b Vars.p (constB false))
+c = (while Labels.c (rvarB Vars.p)
+      (assignN Labels.d Vars.x (constN N5)))
+c' = (while Labels.c (rvarB Vars.p)
+      (assignN Labels.e Vars.x (constN N5)))
+a = cobegin Labels.a c b
+a' = cobegin Labels.a c' b
 
+prog6 = program a
 after-b-and-p = (after Labels.b) ∧ (¬ (var Vars.p))
 
 init = (at Labels.b) ∧ (at Labels.c)
@@ -361,4 +369,4 @@ p2-53 = d-∧-i p2-51 p2-49
 p2-54 = d-mp p2-52 p2-53
 
 
-
+valid = verify p2-54

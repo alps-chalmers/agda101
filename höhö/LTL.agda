@@ -8,8 +8,6 @@ open import Label
 
 import Labels
 
-data Program : Set where
-  program : Program
 
 -- Section [2]: Rules
 
@@ -123,55 +121,56 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
 
 
 data _⊨_ : Program -> Props -> Set where
-  d-⊤-i : {p : Props} ->          (prog : Program) ->
+  d-⊤-i : {p : Props} ->          (prog : Program) ->   -- verified [x]
                                   ⊤ ⊢ p ->
                                   ----------------------
                                   prog ⊨ p
 
       --- assume invariance of a property (safety)
-  ▢-i :                           (prog : Program) ->
+  ▢-i :                           (prog : Program) ->   -- verified [x]
                                   (p : Props) ->
                                   ------------------
                                   prog ⊨ (▢ (p ⊃ (▢ p)))
 
-  aar :                           (prog : Program) ->
+  aar :                           (prog : Program) ->   -- verified [x]
                                   (l : Label) ->
                                   ------------------------
                                   prog ⊨ (at l ~> after l)
   d-∧-i : {prog : Program}
-          {p q : Props} ->        prog ⊨ p ->
+          {p q : Props} ->        prog ⊨ p ->           -- verified [x]
                                   prog ⊨ q ->
                                   -----------
                                   prog ⊨ (p ∧ q)
   d-mp : {prog : Program}
-         {p q : Props} ->         prog ⊨ (p ⊃ q) ->
+         {p q : Props} ->         prog ⊨ (p ⊃ q) ->     -- verified [x]
                                   prog ⊨ p ->
                                   ---------------
                                   prog ⊨ q
 
-  asr-f :                         (prog : Program) ->
+  asr-f :                         (prog : Program) ->   -- verified [x]
                                   (l : Label) ->
                                   (b : BVar) ->
                                   -------------
                                   prog ⊨ ((at l) ~> ((after l) ∧ ¬ (var b)))
 
-  assume :                            (prog : Program) ->
-                                      (p : Props) ->
-                                      --------------
-                                      prog ⊨ p
-  after-while :                   (prog : Program) ->
+  assume :                        (prog : Program) ->   -- verified [ ]
+                                  (p : Props) ->
+                                  --------------
+                                  prog ⊨ p
+
+  after-while :                   (prog : Program) ->   -- verified [ ]
                                   (l1 : Label) ->
                                   (l2 : Label) ->
                                   -----------------
                                   prog ⊨ ▢ ((after l1 ⊃ (at l2)))
 
-  inside-while :                  (prog : Program) ->
+  inside-while :                  (prog : Program) ->   -- verified [ ]
                                   (l : Label) ->
                                   (p : Props) ->
                                   -------------
                                   prog ⊨ ((inside l) ⊃ p)
 
-  wer :                           (prog : Program) ->
+  wer :                           (prog : Program) ->   -- verified [ ]
                                   (l : Label) ->
                                   (p : Props) ->
                                   --------------

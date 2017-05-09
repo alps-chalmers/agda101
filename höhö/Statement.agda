@@ -2,6 +2,7 @@ module Statement where
 
 open import N
 open import Bool
+open import Label
 
 
 data BVar : Set where
@@ -12,18 +13,19 @@ data NVar : Set where
 
 data BExpr : Set where
   constB : Bool -> BExpr
-  rvarB  : N -> BExpr
+  rvarB  : BVar -> BExpr     --read var, just checks value of a bvar
 
 data NExpr : Set where
   constN : N -> NExpr
-  rvarN  : N -> NExpr
+  rvarN  : NVar -> NExpr
 
 
 data Statement : Set where
-  assignN      : NVar -> NExpr -> Statement
-  assignB      : BVar -> BExpr -> Statement
-  assignment : Statement
+  assignN      : Label -> NVar -> NExpr -> Statement
+  assignB      : Label -> BVar -> BExpr -> Statement
   composition : Statement -> Statement -> Statement
-  while : BExpr -> Statement -> Statement
-  cobegin : Statement -> Statement -> Statement
+  while : Label -> BExpr -> Statement -> Statement
+  cobegin : Label -> Statement -> Statement -> Statement
 
+data Program : Set where
+  program : Statement -> Program
