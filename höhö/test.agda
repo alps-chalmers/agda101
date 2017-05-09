@@ -369,4 +369,4 @@ p2-53 = d-∧-i p2-51 p2-49
 p2-54 = d-mp p2-52 p2-53
 
 
-valid = verify p2-54
+proof-valid = verify p2-54

@@ -153,12 +153,12 @@ data _⊨_ : Program -> Props -> Set where
                                   -------------
                                   prog ⊨ ((at l) ~> ((after l) ∧ ¬ (var b)))
 
-  assume :                        (prog : Program) ->   -- verified [ ]
+  assume :                        (prog : Program) ->   -- verified [x]
                                   (p : Props) ->
                                   --------------
                                   prog ⊨ p
 
-  after-while :                   (prog : Program) ->   -- verified [ ]
+  after-while :                   (prog : Program) ->   -- verified [x]
                                   (l1 : Label) ->
                                   (l2 : Label) ->
                                   -----------------
