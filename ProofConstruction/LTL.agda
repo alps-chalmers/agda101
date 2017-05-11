@@ -82,6 +82,11 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                     p ⊢ (r ~> s) ->
                                     -------------------
                                     p ⊢ (q ~> s)
+  TL7imp : {p q r s t : Props} ->   p ⊢ (q ~> r) ->
+                                    p ⊢ (s ~> t) ->
+                                    p ⊢ (▢ (r ⊃ s)) ->
+                                    -------------------
+                                    p ⊢ (q ~> t)
 
   imp-eq1 : {p q r : Props} ->      p ⊢ (q ⊃ r) ->
                                     ------------
@@ -181,6 +186,11 @@ data _⊨_ : Program -> Props -> Set where
                                   --------------
                                   prog ⊨ (▢ (((at Labels.c) ∧ (▢ (¬ p))) ⊃
                                           (◇ (after Labels.c))))
+  at-after :                      (prog : Program) ->   -- verified [ ]
+                                  (l1 : Label) ->
+                                  (l2 : Label) ->
+                                  ---------------
+                                  prog ⊨ (▢ ((after l1) ⊃ (at l2)))
 
 ∧-comm : {p q r : Props} -> p ⊢ (q ∧ r) -> p ⊢ (r ∧ q)
 ∧-comm proof = ∧-i (∧-e2 proof) (∧-e1 proof)

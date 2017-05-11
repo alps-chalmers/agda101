@@ -8,16 +8,8 @@ open import Label
 open import LTL
 open import Veryfire
 import Labels
+import Vars
 
-
-
-module Vars where
-  p = bvar N0
-  q = bvar N1
-  w = bvar N2
-  x = nvar N0
-  y = nvar N1
-  z = nvar N2
 
 typeof : {A : Set} -> A -> Set
 typeof {A} _ = A
