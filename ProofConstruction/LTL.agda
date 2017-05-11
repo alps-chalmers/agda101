@@ -78,6 +78,11 @@ data _⊢_ : Props -> Props -> Set where        -- descriptions of the rules
                                     -------------------
                                     p ⊢ ((▢ q) ∧ (▢ r))
 
+  TL7 : {p q r s : Props} ->        p ⊢ (q ~> r) ->
+                                    p ⊢ (r ~> s) ->
+                                    -------------------
+                                    p ⊢ (q ~> s)
+
   imp-eq1 : {p q r : Props} ->      p ⊢ (q ⊃ r) ->
                                     ------------
                                     p ⊢ ((¬ q) ∨ r)
