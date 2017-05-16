@@ -6,8 +6,7 @@ module Program where
 open import Data.Nat
 open import Data.Bool
 open import Data.String
-open import LTL
-open import Label
+open import ELTL
 
 -- A process starting at at label i
 data Proc : (p : Label) → (l : Label) → Set where
@@ -29,4 +28,4 @@ data Seg : Label → Stm → Label → Set where
 -- Program representation. Takes a single main process as argument.
 data Prog : {p l : Label} → (ps : Proc p l) → ℕ → Set where
   prog : {p l : Label} → (ps : Proc p l) → Prog ps 0
-  _⋆_  : ∀{n} {p l : Label} {ps : Proc p l} → (pr : Prog ps n) → (φ : LTL) → Prog ps (suc n)
+  _⋆_  : ∀{n} {p l : Label} {ps : Proc p l} → (pr : Prog ps n) → (φ : ELTL) → Prog ps (suc n)

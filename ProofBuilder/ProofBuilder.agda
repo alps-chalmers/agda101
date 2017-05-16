@@ -1,14 +1,12 @@
 module ProofBuilder where
 
-open import LTLRules
+open import SatRel
 open import Program
-open import Label
-open import LTL
+open import ELTL
 open import Data.Bool as Bool using (Bool; true; false)
 
 -- TODO
 -- * Index Label over ℕ
--- * Fix fin
 -- * Implement if/while
 
 --============================   Simple Program   ==============================
