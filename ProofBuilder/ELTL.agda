@@ -4,7 +4,7 @@ open import Data.Nat
 open import Data.Bool as Bool using (Bool; true; false)
 open import Data.String
 
-infixl 6 T ⊥ _==n_ _==b_ at in' after tr
+infixl 6 T ⊥ _==n_ _==b_ at in' after
 infixl 7 □ ◇
 infixl 8 ∼
 infixl 9 _∨_ _∧_
@@ -30,13 +30,12 @@ data Label : Set where
 -- The extended ELTL data type
 data ELTL : Set where
   T ⊥           : ELTL                               -- true & false
-  ∼             : (φ : ELTL) → ELTL                   -- not
-  □ ◇           : (φ : ELTL) → ELTL                   -- always & eventually
-  _∧_ _∨_       : (φ : ELTL) → ELTL → ELTL             -- and & or
-  _⇒_           : (φ : ELTL) → ELTL → ELTL             -- implies
-  _~>_          : (φ : ELTL) → (ψ : ELTL) → ELTL       -- leads to - (P ~> Q) ≡ □(P ⊂ ◇Q)
+  ∼             : (φ : ELTL) → ELTL                  -- not
+  □ ◇           : (φ : ELTL) → ELTL                  -- always & eventually
+  _∧_ _∨_       : (φ : ELTL) → ELTL → ELTL           -- and & or
+  _⇒_           : (φ : ELTL) → ELTL → ELTL           -- implies
+  _~>_          : (φ : ELTL) → (ψ : ELTL) → ELTL     -- leads to - (P ~> Q) ≡ □(P ⊂ ◇Q)
   at in' after  : (l : Label) → ELTL                 -- at, in & after a code segment - extended
-                                                    -- from Owiki & Lamport
+                                                     -- from Owiki & Lamport
   _==n_         : (x : String) → (n : ℕ*) → ELTL     -- Nat variable x has the value n
   _==b_         : (x : String) → (b : Bool*) → ELTL  -- Bool variable x has the value of y
-  tr            : (x : Bool*) → ELTL                 -- Variable x has the value -- true

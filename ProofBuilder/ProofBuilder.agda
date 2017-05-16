@@ -133,6 +133,31 @@ pw0=>w7 = flow (exitPar (w2=>pw1' (◇-∧-e₁ pw0=>w2∧w4)) (w4=>pw2' (◇-�
 pw0=>pw0' : {pr : Prog pw0 0} → pr ⊨ ◇ (after (prc 0))
 pw0=>pw0' = fin-R (flow (◇-∧-e₁ (:=n-R pw0=>w7 w7)) w7) w8
 
+-- Termination using ~>
+
+w0~>p1∧p2 : {pr : Prog pw0 0} → pr ⊨ (at (s 0) ~> (at (prc 1) ∧ at (prc 2)))
+w0~>p1∧p2 = ~>-trans (:=n-step w0) (parRule' w1)
+
+p1~>p1' : {pr : Prog pw0 0} → pr ⊨ (at (prc 1) ~> after (prc 1))
+p1~>p1' = ~>-trans (enterPrc pw1) (~>-trans (:=n-step w2) (fin-R' w3))
+
+p2~>p2' : {pr : Prog pw0 0} → pr ⊨ (at (prc 2) ~> after (prc 2))
+p2~>p2' = ~>-trans (~>-trans (~>-trans (enterPrc pw2) (exWhile-F' w4)) (flow' w4)) (fin-R' w6)
+
+p1∧p2~>p1'∧p2' : {pr : Prog pw0 0} → pr ⊨ ((at (prc 1) ∧ at (prc 2)) ~> (after (prc 1) ∧ after (prc 2)))
+p1∧p2~>p1'∧p2' = join w1 p1~>p1' p2~>p2'
+
+p1'∧p2'~>w7 : {pr : Prog pw0 0} → pr ⊨ ((after (prc 1) ∧ after (prc 2)) ~> at (s 7))
+p1'∧p2'~>w7 = ~>-trans (exitPar' w1) (flow' w1)
+
+w7~>p0' : {pr : Prog pw0 0} → pr ⊨ (at (s 7) ~> after (prc 0))
+w7~>p0' = ~>-trans (:=n-step w7) (fin-R' w8)
+
+-- Proof of termination
+
+p0⇒p0' : {pr : Prog pw0 0} → pr ⊨ ◇ (after (prc 0))
+p0⇒p0' = ~>-e (~>-trans (~>-trans (~>-trans w0~>p1∧p2 p1∧p2~>p1'∧p2') p1'∧p2'~>w7) w7~>p0') (◇-i init)
+
 --=======================   "Advanced" While Program   =========================
 
 {- == The program ==
@@ -178,8 +203,8 @@ pa0=>a2∧a4 = parRule (flow (◇-∧-e₁ (:=b-T-R (◇-i init) a0)) w0) w1
 a2=>pa1' : {pr : Prog pa0 0} → pr ⊨ ◇ (at (s 2)) → pr ⊨ ◇ (after (prc 1))
 a2=>pa1' p = fin-R (flow (◇-∧-e₁ (:=b-F-R p a2)) a2) a3
 
-∼x=>□∼x : {pr : Prog pa0 0} → pr ⊨ ◇ (∼ (tr (var "x"))) → pr ⊨ ◇ (□ (∼ (tr (var "x"))))
-∼x=>□∼x p = custom (◇ (∼ (tr (var "x")))) (◇ (□ (∼ (tr (var "x"))))) p
+postulate ∼x=>□∼x : {pr : Prog pa0 0} → pr ⊨ ◇ ("x" ==b (bool false)) → pr ⊨ ◇ (□ ("x" ==b (bool false)))
+-- ∼x=>□∼x p = custom (◇ (∼ (tr (var "x")))) (◇ (□ (∼ (tr (var "x"))))) p
 
 a4=>a4' : {pr : Prog pa0 0} → pr ⊨ ◇ (at (s 4)) → pr ⊨ ◇ (after (s 4))
 a4=>a4' p = exitWhile p (∼x=>□∼x (◇-∧-e₂ (:=b-F-R (◇-∧-e₁ pa0=>a2∧a4) a2))) a4

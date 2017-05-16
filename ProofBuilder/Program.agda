@@ -6,6 +6,7 @@ module Program where
 open import Data.Nat
 open import Data.Bool
 open import Data.String
+open import Data.Vec
 open import ELTL
 
 -- A process starting at at label i
