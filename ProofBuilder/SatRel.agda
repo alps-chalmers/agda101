@@ -9,6 +9,7 @@ open import Program
 -- TODO
 -- * Fix loop conditions being able to handle infinite inner loops. in => at etc.
 -- * Separate ELTLRules from the rest, into ⊢.
+-- Make list of program, check if statement in the list
 
 -- pr ⊨ φ, the Procram pr satiesfies φ when starting at the segment labled i.
 
@@ -16,12 +17,15 @@ data _⊨_ : {n : ℕ} {i l : Label} {pr : Proc i l} → (prg : Prog pr n) → (
 
   -- Procram Rules
   init       : ∀ {n p i} {ps : Proc p i} {pr : Prog ps n}               → pr ⊨ (at i)
-  :=n-flow : ∀ {n p se l l' x v}    {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=n v) l' → pr ⊨ (at l ~> after l)
-  :=b-flow : ∀ {n p se l l' x b}    {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=b b) l' → pr ⊨ (at l ~> after l)
-  :=n-R      : ∀ {n p se l l' x v}    {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (x :=n v) l' → pr ⊨ ◇ (after l ∧ (x ==n v))
-  :=b-T-R    : ∀ {n p se l l' x}      {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (x :=b (bool true)) l' → pr ⊨ ◇ (after l ∧ (x ==b (bool true)))
-  :=b-F-R    : ∀ {n p se l l' x}      {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (x :=b (bool false)) l' → pr ⊨ ◇ (after l ∧ (x ==b (bool false)))
-  :=bVar-R   : ∀ {n p se l l' x y}    {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (x :=b (var y)) l' → pr ⊨ ◇ (after l ∧ (x ==b (var y)))
+  :=n-flow   : ∀ {n p se l l' x v}    {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=n v) l' → pr ⊨ (at l ~> after l)
+  :=b-flow   : ∀ {n p se l l' x b}    {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=b b) l' → pr ⊨ (at l ~> after l)
+  :=n-R      : ∀ {n p se l l' x v}    {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (x :=n v) l' → pr ⊨ ◇ (after l ∧ (b* (x ==n v)))
+  :=n-R'     : ∀ {n p se l l' x v}    {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=n v) l' → pr ⊨ (at l ~> (after l ∧ (b* (x ==n v))))
+  :=b-T-R    : ∀ {n p se l l' x}      {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (x :=b (bool true)) l' → pr ⊨ ◇ (after l ∧ (b* (x ==b (bool true))))
+  :=b-F-R    : ∀ {n p se l l' x}      {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (x :=b (bool false)) l' → pr ⊨ ◇ (after l ∧ (b* (x ==b (bool false))))
+  :=b-T-R'   : ∀ {n p se l l' x}      {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=b (bool true)) l' → pr ⊨ (at l ~> (after l ∧ (b* (x ==b (bool true)))))
+  :=b-F-R'   : ∀ {n p se l l' x}      {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=b (bool false)) l' → pr ⊨ (at l ~> (after l ∧ (b* (x ==b (bool false)))))
+  :=bVar-R   : ∀ {n p se l l' x y}    {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (x :=b (var y)) l' → pr ⊨ ◇ (after l ∧ (b* (x ==b (var y))))
   flow       : ∀ {n p se l l' stm}    {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (after l) → Seg l stm l' → pr ⊨ ◇ (at l')
   flow'      : ∀ {n p se l l' stm}    {ps : Proc p se} {pr : Prog ps n} → Seg l stm l' → pr ⊨ ((after l) ~> (at l'))
   exitSeg    : ∀ {n p se l}           {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → pr ⊨ (◇ (□ (in' l)) ∨ ◇ (after l))
@@ -29,11 +33,13 @@ data _⊨_ : {n : ℕ} {i l : Label} {pr : Proc i l} → (prg : Prog pr n) → (
   in=>at∨inw : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (in' l) → Seg l (while b st) l' → pr ⊨ ((◇ (at l)) ∨ (◇ (at st)))
   in=>at∨ini : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (in' l) → Seg l (if b st) l' → pr ⊨ ((◇ (at l)) ∨ (◇ (at st)))
   stuckWhile : ∀ {n p se l l' st}     {ps : Proc p se} {pr : Prog ps n} → Seg l (while (bool true) st) l' → pr ⊨ ((◇ (at l)) ⇒ (◇ (□ (in' l))))
-  exitWhile  : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → pr ⊨ ◇ (□ (b ==b (bool false))) → Seg l (while (var b) st) l' → pr ⊨ ◇ (after l)
-  exitWhile' : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → Seg l (while (var b) st) l' → pr ⊨ (((at l) ∧ (□ ((at l) ⇒ (b ==b (bool false))))) ~> (after l))
+  enterWhile : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → Seg l (while b st) l' → pr ⊨ (in' l ~> at st)
+  exitWhile  : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → pr ⊨ ◇ (□ (b* (b ==b (bool false)))) → Seg l (while (var b) st) l' → pr ⊨ ◇ (after l)
+  exitWhile' : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ (at l ~> □ (b* (b ==b (bool false)))) → pr ⊨ (in' l ~> at l) → Seg l (while (var b) st) l' → pr ⊨ (at l ~> after l)
+  exWhileC<  : ∀ {n p se l l' st x} {i : ℕ} {ps : Proc p se} {pr : Prog ps n} → Seg l (while ((var x) <* (nat i)) st) l' → pr ⊨ ((at l ∧ (b* ((var x) <* (nat i)))) ~> after l)
   exWhile-F  : ∀ {n p se l l' s}      {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (while (bool false) s) l' → pr ⊨ ◇ (after l)
   exWhile-F' : ∀ {n p se l l' s}      {ps : Proc p se} {pr : Prog ps n} → Seg l (while (bool false) s) l' → pr ⊨ (at l ~> after l)
-  exWhile-E  : ∀ {n p se l l' st x y} {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (while ((nat x) <' (nat y)) st) l' → pr ⊨ ◇ (after l)
+  exWhile-E  : ∀ {n p se l l' st x y} {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (while ((nat x) <* (nat y)) st) l' → pr ⊨ ◇ (after l)
   wContFlow  : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → Seg l (while b st) l' → pr ⊨ ((at l) ~> ((at st) ∨ (after l)))
   ifRule     : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (if b st) l' → pr ⊨ ◇ ((at st) ∨ (after l))
 --  at=>af'    : ∀ {n p se l}           {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → pr ⊨ ◇ (∼ (after l))
@@ -44,6 +50,9 @@ data _⊨_ : {n : ℕ} {i l : Label} {pr : Proc i l} → (prg : Prog pr n) → (
   parRule    : ∀ {n p se p₁ p₂ l l' a₀ b₀} {ps : Proc p se} {pr : Prog ps n} {a : Proc p₁ a₀} {b : Proc p₂ b₀} → pr ⊨ ◇ (at l) → Seg l (a || b) l' → pr ⊨ ◇ ((at a₀) ∧ (at b₀))
   parRule'   : ∀ {n p se p₁ p₂ l l' a₀ b₀} {ps : Proc p se} {pr : Prog ps n} {a : Proc p₁ a₀} {b : Proc p₂ b₀} → Seg l (a || b) l' → pr ⊨ ((at l) ~> ((at p₁) ∧ (at p₂)))
   enterPrc   : ∀ {n p p' se sg} {ps : Proc p se} {pr : Prog ps n} → Proc p' sg → pr ⊨ (at p' ~> at sg)
+  infPrc     : ∀ {n p p' se sg} {ps : Proc p se} {pr : Prog ps n} → Proc p' sg → pr ⊨ (at sg ~> at p')
+  infPar₁    : ∀ {n p se p₁ p₂ l l' a₀ b₀} {ps : Proc p se} {pr : Prog ps n} {a : Proc p₁ a₀} {b : Proc p₂ b₀} → Seg l (a || b) l' → pr ⊨ (at p₂ ~> at p₁)
+  infPar₂    : ∀ {n p se p₁ p₂ l l' a₀ b₀} {ps : Proc p se} {pr : Prog ps n} {a : Proc p₁ a₀} {b : Proc p₂ b₀} → Seg l (a || b) l' → pr ⊨ (at p₁ ~> at p₂)
   join       : ∀ {n p se p₁ p₂ l l' a₀ b₀} {ps : Proc p se} {pr : Prog ps n} {a : Proc p₁ a₀} {b : Proc p₂ b₀} → Seg l (a || b) l' → pr ⊨ (at p₁ ~> after p₁) → pr ⊨ (at p₂ ~> after p₂) → pr ⊨ ((at p₁ ∧ at p₂) ~> (after p₁ ∧ after p₂))
 
   -- ELTL Rules
@@ -80,7 +89,7 @@ data _⊨_ : {n : ℕ} {i l : Label} {pr : Proc i l} → (prg : Prog pr n) → (
   ◇-∧-e₂    : ∀ {n p se φ ψ}   {ps : Proc p se} {pr : Prog ps n}    → pr ⊨ ◇ (φ ∧ ψ) → pr ⊨ ◇ ψ
   ◇-□-∧-i   : ∀ {n p se φ ψ}   {ps : Proc p se} {pr : Prog ps n}    → pr ⊨ ◇ (□ φ) → pr ⊨ ◇ (□ ψ) → pr ⊨ ◇ (□ (φ ∧ ψ))
   ◇-∨-exp   : ∀ {n p se φ ψ}   {ps : Proc p se} {pr : Prog ps n}    → pr ⊨ (◇ (φ ∨ ψ)) → pr ⊨ ((◇ φ) ∨ (◇ ψ))
-  ◇-□-e     : ∀ {n p se φ}   {ps : Proc p se} {pr : Prog ps n}    → pr ⊨ ◇ (□ φ)→ pr ⊨ ◇ φ
+  ◇-□-e     : ∀ {n p se φ}     {ps : Proc p se} {pr : Prog ps n}    → pr ⊨ ◇ (□ φ)→ pr ⊨ ◇ φ
   TL5       : ∀ {n p se φ ψ}   {ps : Proc p se} {pr : Prog ps n}    → pr ⊨ ((□ φ) ∧ (□ (φ ⇒ ψ))) → pr ⊨ (□ ψ)
 
 {-==============================
@@ -111,8 +120,11 @@ data _⊨_ : {n : ℕ} {i l : Label} {pr : Proc i l} → (prg : Prog pr n) → (
 ~>-e : ∀ {n p se φ ψ} {ps : Proc p se} {pr : Prog ps n} → pr ⊨ (φ ~> ψ) → pr ⊨ ◇ φ → pr ⊨ ◇ ψ
 ~>-e p q = ⇒-e (□-e (~>-□ p)) q
 
-:=n-step : ∀ {p se n l l' x v} {ps : Proc p se} {pr : Prog ps n} → (Seg l (x :=n v) l') → pr ⊨ (at l ~> at l')
+:=n-step : ∀ {p se n l l' x v} {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=n v) l' → pr ⊨ (at l ~> at l')
 :=n-step x = ~>-trans (:=n-flow x) (flow' x)
+
+:=b-step : ∀ {p se n l l' x b} {ps : Proc p se} {pr : Prog ps n} → Seg l (x :=b b) l' → pr ⊨ (at l ~> at l')
+:=b-step x = ~>-trans (:=b-flow x) (flow' x)
 
 □-◇ : ∀ {n p se φ} {ps : Proc p se} {pr : Prog ps n} → pr ⊨ □ φ → pr ⊨ ◇ φ
 □-◇ p = ◇-i (□-e p)

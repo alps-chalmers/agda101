@@ -7,7 +7,6 @@ open import Data.Bool as Bool using (Bool; true; false)
 
 -- TODO
 -- * Index Label over ℕ
--- * Implement if/while
 
 --============================   Simple Program   ==============================
 
@@ -203,9 +202,8 @@ pa0=>a2∧a4 = parRule (flow (◇-∧-e₁ (:=b-T-R (◇-i init) a0)) w0) w1
 a2=>pa1' : {pr : Prog pa0 0} → pr ⊨ ◇ (at (s 2)) → pr ⊨ ◇ (after (prc 1))
 a2=>pa1' p = fin-R (flow (◇-∧-e₁ (:=b-F-R p a2)) a2) a3
 
-postulate ∼x=>□∼x : {pr : Prog pa0 0} → pr ⊨ ◇ ("x" ==b (bool false)) → pr ⊨ ◇ (□ ("x" ==b (bool false)))
--- ∼x=>□∼x p = custom (◇ (∼ (tr (var "x")))) (◇ (□ (∼ (tr (var "x"))))) p
-
+-- Should be checked by SafetyChecker
+postulate ∼x=>□∼x : {pr : Prog pa0 0} → pr ⊨ ◇ (b* ("x" ==b (bool false))) → pr ⊨ ◇ (□ (b* ("x" ==b (bool false))))
 a4=>a4' : {pr : Prog pa0 0} → pr ⊨ ◇ (at (s 4)) → pr ⊨ ◇ (after (s 4))
 a4=>a4' p = exitWhile p (∼x=>□∼x (◇-∧-e₂ (:=b-F-R (◇-∧-e₁ pa0=>a2∧a4) a2))) a4
 

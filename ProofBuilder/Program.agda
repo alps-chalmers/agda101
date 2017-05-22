@@ -28,7 +28,7 @@ data Seg : Label → Stm → Label → Set where
 
 
 --====================== Experimental ======================--
-
+{-}
 data Stm* : Set where
   seg*   : (l : Label) → (stm : Stm) → Stm*
   block : ∀ {n} → (l : Label) → Vec Stm* n → Stm*
@@ -58,6 +58,8 @@ x seq y ∈ xs = {!   !}
 
 
 test = s1 :: s3 ∈ (s1 ∷ s2 ∷ s3 ∷ [])
+
+-}
 
 {-}
 data _∈_ {a} {A : Set a} : A → {n : ℕ} → Vec A n → Set a where
