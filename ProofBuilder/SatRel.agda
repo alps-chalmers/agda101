@@ -29,7 +29,8 @@ data _⊨_ : {n : ℕ} {i l : Label} {pr : Proc i l} → (prg : Prog pr n) → (
   flow       : ∀ {n p se l l' stm}    {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (after l) → Seg l stm l' → pr ⊨ ◇ (at l')
   flow'      : ∀ {n p se l l' stm}    {ps : Proc p se} {pr : Prog ps n} → Seg l stm l' → pr ⊨ ((after l) ~> (at l'))
   exitSeg    : ∀ {n p se l}           {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → pr ⊨ (◇ (□ (in' l)) ∨ ◇ (after l))
-  -- enterWhile : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (in' l) → Seg l (while b st) l' → pr ⊨ ◇ (at st)
+  -- atomswap   : ∀ {n p se l₁ l₁' l₂ l₂' st} {ps : Proc p se} {pr : Prog ps n} → Seg l₁ (atom st) l₁' → Seg l₂ (atom st) l₂' → pr ⊨ (in' l₁ ∧ at l₂ ~> after l₁ ∧ in' l₂) -- TODO
+  atom-⊥     : ∀ {n p se l₁ l₁' l₂ l₂' st} {ps : Proc p se} {pr : Prog ps n} → Seg l₁ (atom st) l₁' → Seg l₂ (atom st) l₂' → pr ⊨ (in' l₁ ∧ in' l₂ ~> ⊥)
   in=>at∨inw : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (in' l) → Seg l (while b st) l' → pr ⊨ ((◇ (at l)) ∨ (◇ (at st)))
   in=>at∨ini : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (in' l) → Seg l (if b st) l' → pr ⊨ ((◇ (at l)) ∨ (◇ (at st)))
   stuckWhile : ∀ {n p se l l' st}     {ps : Proc p se} {pr : Prog ps n} → Seg l (while (bool true) st) l' → pr ⊨ ((◇ (at l)) ⇒ (◇ (□ (in' l))))
@@ -42,7 +43,6 @@ data _⊨_ : {n : ℕ} {i l : Label} {pr : Proc i l} → (prg : Prog pr n) → (
   exWhile-E  : ∀ {n p se l l' st x y} {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (while ((nat x) <* (nat y)) st) l' → pr ⊨ ◇ (after l)
   wContFlow  : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → Seg l (while b st) l' → pr ⊨ ((at l) ~> ((at st) ∨ (after l)))
   ifRule     : ∀ {n p se l l' st b}   {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → Seg l (if b st) l' → pr ⊨ ◇ ((at st) ∨ (after l))
---  at=>af'    : ∀ {n p se l}           {ps : Proc p se} {pr : Prog ps n} → pr ⊨ ◇ (at l) → pr ⊨ ◇ (∼ (after l))
   fin-R      : ∀ {n p se l p' i}      {ps : Proc p se} {pr : Prog ps n} {ps' : Proc p' i} → pr ⊨ ◇ (at l) → Seg l (fin ps') l → pr ⊨ ◇ (after p')
   fin-R'     : ∀ {n p se l p' i}      {ps : Proc p se} {pr : Prog ps n} {ps' : Proc p' i} → Seg l (fin ps') l → pr ⊨ ((at l) ~> (after p'))
   exitPar    : ∀ {n p se p₁ p₂ l l' a₀ b₀} {ps : Proc p se} {pr : Prog ps n} {a : Proc p₁ a₀} {b : Proc p₂ b₀} → pr ⊨ ◇ (after p₁) → pr ⊨  ◇ (after p₂) → Seg l (a || b) l' → pr ⊨ ◇ (after l)
@@ -128,15 +128,6 @@ data _⊨_ : {n : ℕ} {i l : Label} {pr : Proc i l} → (prg : Prog pr n) → (
 
 □-◇ : ∀ {n p se φ} {ps : Proc p se} {pr : Prog ps n} → pr ⊨ □ φ → pr ⊨ ◇ φ
 □-◇ p = ◇-i (□-e p)
-
--- p~>□∧p~>◇ : ∀ {n p se φ ψ χ} {ps : Proc p se} {pr : Prog ps n} → pr ⊨ (φ ~> □ ψ) → pr ⊨ (φ ~> □ χ) → pr ⊨ (φ ~> □ (ψ ∧ χ))
--- p~>□∧p~>◇ p q = □-~> (□-⇒-i (◇-□-∧-i (~>-e {!   !} {!   !}) {!   !}))
--- □-~> (□-⇒-i (◇-□-e (◇-□-∧-i (~>-e {! p  !} assume) {!   !})))
--- □-~> (□-⇒-i (◇-□-∧-i {!   !} {!   !}))
-
--- ~>-∧-e₁ : ∀ {n p se φ ψ χ} {ps : Proc p se} {pr : Prog ps n} → pr ⊨ (φ ~> (ψ ∧ χ)) → pr ⊨ (φ ~> ψ)
--- ~>-∧-e₁ p = □-~> (□-⇒-i (~>-e (□-~> (□-e (⇒-e {!   !} assume))) (~>-e (weak p) assume)))
-
 
 
 -- TODO
