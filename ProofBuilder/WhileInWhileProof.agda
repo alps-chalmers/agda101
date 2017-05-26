@@ -91,6 +91,10 @@ l7 = seg (s 7) ("x" :=n (nat 6)) (s 6)
 l8 = seg (s 8) (fin p2) (s 8)
 l9 = seg (s 9) (fin p0) (s 9)
 
+
+s1~>l2 : {pr : Prog p0 0} → pr ⊨ (at (s 1) ~> at (s 2))
+s1~>l2 = ~>-trans (~>-∧-e₁ (parRule' s1)) (enterPrc p1)
+
 s1~>l4 : {pr : Prog p0 0} → pr ⊨ (at (s 1) ~> at (s 4))
 s1~>l4 = ~>-trans (~>-∧-e₂ (parRule' s1)) (enterPrc p2)
 
@@ -103,6 +107,5 @@ l4~>l4' : {pr : Prog p0 0} → pr ⊨ (at (s 4) ~> after (s 4))
 l4~>l4' = exitWhile' (~>-trans (infPrc p2) (~>-trans (infPar₁ s1) (~>-trans (enterPrc p1) s2~>□p')))
   (~>-trans (~>-trans (enterWhile s4) (:=n-step s5)) (~>-trans (exWhile-F' l6) (flow' s6))) s4
 
--- Proof of pr ⊨ ◇ (after s4).
 p⊨◇s4' : {pr : Prog p0 0} → pr ⊨ ◇ (after (s 4))
 p⊨◇s4' = ~>-e (~>-trans (~>-trans (:=b-step l0) s1~>l4) l4~>l4') (◇-i init)
