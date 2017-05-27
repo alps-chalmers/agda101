@@ -55,13 +55,13 @@ s13 = seg (s 13) (fin p0) (s 13)
 
 
 -- Proof using regular rules.
-
+{-
 s0=>s2 : {pr : Prog p0 0} → pr ⊨ ◇ (at (s 0)) → pr ⊨ ◇ (at (s 2))
 s0=>s2 p = :=b-F-step (:=b-T-step (◇-i init) s0) s1
 
 p1=>p1' : {pr : Prog p0 0} → pr ⊨ ◇ (at (prc 1)) → pr ⊨ ◇ (after (prc 1))
 p1=>p1' p = fin-R (flow (exitWhile {!   !} {!   !} {! s4  !}) s4) s6
-
+-}
 
 -- Proof method using ~>-rules.
 

@@ -20,7 +20,8 @@ data Stm : Set where
   _||_  : ∀{p₁ p₂ a b} → Proc p₁ a → Proc p₂ b → Stm   -- a and b exectued in parallel
   if    : (b : Bool*) → (l : Label) → Stm   -- if-statement
   while : (b : Bool*) → (l : Label) → Stm   -- while-statement
-  atom  : (l : Label) → Stm
+  swapN : (x : String) → (y : String) → Stm
+  swapB : (x : String) → (y : String) → Stm
   fin   : ∀{p s} → (pr : Proc p s) → Stm
 
 -- Segment representation. A segment is a labled statement and belongs to a process.
