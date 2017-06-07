@@ -6,74 +6,231 @@ open import Data.String
 open import ELTL
 open import CPL
 
+infixl 12 _⊨_
+
+
 -- TODO
 -- http://oxij.org/note/BrutalDepTypes/
 
 -- p ⊨ φ, the Procram p satiesfies φ with the initial statement st.
 
-data _⊨_ : ∀{l s n} {st : Stm* l s} → (p : Prog st n) → ELTL → Set where
+data _⊨_ {l : String} {s : Stm} {st : Stm* l s} : {n : ℕ} → (p : Prog st n) → ELTL → Set where
 
   -- Program rules
-  init       : ∀ {m s n}          {st : Stm* m s} {p : Prog st n} → p ⊨ (at m)
-  term       : ∀ {m s n}          {st : Stm* m s} {p : Prog st n} → p ⊨ (at m ~> af m) → p ⊨ term
-  :=n-R      : ∀ {n m l x v s}    {st : Stm* m s} {p : Prog st n} → Stm* l (x :=n v) → p ⊨ (at l ~> (af l ∧ (b* (x ==n v))))
-  :=b-T-R    : ∀ {n m l x s}      {st : Stm* m s} {p : Prog st n} → Stm* l (x :=b (bool true)) → p ⊨ (at l ~> (af l ∧ (b* (var x))))
-  :=b-F-R    : ∀ {n m l x s}      {st : Stm* m s} {p : Prog st n} → Stm* l (x :=b (bool false)) → p ⊨ (at l ~> (af l ∧ (b* (~ (var x)))))
-  :=b-vT-R   : ∀ {n m l x y s}    {st : Stm* m s} {p : Prog st n} → Stm* l (x :=b (var y)) → p ⊨ ((at l ∧ (b* (var y))) ~> (af l ∧ (b* (var x))))
-  :=b-vF-R   : ∀ {n m l x y s}    {st : Stm* m s} {p : Prog st n} → Stm* l (x :=b (var y)) → p ⊨ ((at l ∧ (b* (~ (var y)))) ~> (af l ∧ (b* ( ~(var x)))))
-  flow       : ∀ {x y m s b bl n} {st : Stm* m s} {p : Prog st n} → Stm* b (block bl) → x seq y ∈ bl → p ⊨ (af x ~> at y)
-  retWhile   : ∀ {m s l b bl n}   {st : Stm* m s} {p : Prog st n} → Stm* l (while b bl) → p ⊨ (af bl ~> at l)
-  exitWhileT : ∀ {l m b s n stm}  {st : Stm* m s} {p : Prog st n} → (s* : Stm* l (while (var b) stm)) → p ⊨ (at l ~> □ (b* (~ (var b)))) → p ⊨ (at stm ~> at l) → p ⊨ (at l ~> af l)
-  exitWhileF : ∀ {l m b s n stm}  {st : Stm* m s} {p : Prog st n} → (s* : Stm* l (while (~ (var b)) stm)) → p ⊨ (at l ~> □ (b*  (var b))) → p ⊨ (at stm ~> at l) → p ⊨ (at l ~> af l)
-  skipWhile  : ∀ {l m s n stm}    {st : Stm* m s} {p : Prog st n} → (s* : Stm* l (while (bool false) stm)) → p ⊨ (at l ~> af l)
-  enterBlock : ∀ {m s b bl n}     {st : Stm* m s} {p : Prog st n} → (s* : Stm* b (block bl)) → (f : String) → f head bl → p ⊨ (at b ~> at f)
-  exitBlock  : ∀ {m s bl b n f}   {st : Stm* m s} {p : Prog st n} → (s* : Stm* b (block bl)) → fin bl f → p ⊨ (af f ~> af b)
-  infBlock   : ∀ {m s bl b n}     {st : Stm* m s} {p : Prog st n} → (s* : Stm* b (block bl)) → (stm : String) → stm ∈* bl → p ⊨ (at stm ~> at b)
-  enterPar   : ∀ {l m s s₁ s₂ n}  {st : Stm* m s} {p : Prog st n} → (s* : Stm* l (s₁ || s₂)) → p ⊨ (at l ~> (at s₁ ∧ at s₂))
-  exitPar    : ∀ {l m s s₁ s₂ n}  {st : Stm* m s} {p : Prog st n} → (s* : Stm* l (s₁ || s₂)) → p ⊨ ((af s₁ ∧ af s₂) ~> af l)
-  infPar₁    : ∀ {l m s s₁ s₂ n}  {st : Stm* m s} {p : Prog st n} → (s* : Stm* l (s₁ || s₂)) → p ⊨ (at s₂ ~> at s₁)
-  infPar₂    : ∀ {l m s s₁ s₂ n}  {st : Stm* m s} {p : Prog st n} → (s* : Stm* l (s₁ || s₂)) → p ⊨ (at s₁ ~> at s₂)
-  join       : ∀ {l m s s₁ s₂ n}  {st : Stm* m s} {p : Prog st n} → (s* : Stm* l (s₁ || s₂)) → p ⊨ (at s₁ ~> af s₁) → p ⊨ (at s₂ ~> af s₂) → p ⊨ ((at s₁ ∧ at s₂) ~> (af s₁ ∧ af s₂))
+
+  init       : ∀ {n} {p : Prog st n}            → p ⊨ (at l)
+
+  term       : ∀ {n} {p : Prog st n}            → p ⊨ (at l ~> af l)
+                                                ---------------------
+                                                → p ⊨ term
+
+  :=n-R      : ∀ {n l x v} {p : Prog st n}      → Stm* l (x :=n v)
+                                                --------------------------------------
+                                                → p ⊨ (at l ~> (af l ∧ (b* (x ==n v))))
+
+  :=b-T-R    : ∀ {n l x} {p : Prog st n}        → Stm* l (x :=b (bool true))
+                                                --------------------------------------
+                                                → p ⊨ (at l ~> (af l ∧ (b* (var x))))
+
+  :=b-F-R    : ∀ {n l x} {p : Prog st n}        → Stm* l (x :=b (bool false))
+                                                ------------------------------------------
+                                                → p ⊨ (at l ~> (af l ∧ (b* (~ (var x)))))
+
+  :=b-vT-R   : ∀ {n l x y} {p : Prog st n}      → Stm* l (x :=b (var y))
+                                                -------------------------------------------------------
+                                                → p ⊨ ((at l ∧ (b* (var y))) ~> (af l ∧ (b* (var x))))
+
+  :=b-vF-R   : ∀ {n l x y} {p : Prog st n}      → Stm* l (x :=b (var y))
+                                                ---------------------------------------------------------------
+                                                → p ⊨ ((at l ∧ (b* (~ (var y)))) ~> (af l ∧ (b* ( ~(var x)))))
+
+  flow       : ∀ {x y b bl n} {p : Prog st n}   → Stm* b (block bl)
+                                                → x seq y ∈ bl
+                                                ---------------------
+                                                → p ⊨ (af x ~> at y)
+
+  retWhile   : ∀ { l b bl n} {p : Prog st n}    → Stm* l (while b bl)
+                                                ----------------------
+                                                → p ⊨ (af bl ~> at l)
+
+  exitWhileT : ∀ {l b n stm} {p : Prog st n}    → (s* : Stm* l (while (var b) stm))
+                                                → p ⊨ (at l ~> □ (b* (~ (var b))))
+                                                → p ⊨ (at stm ~> at l)
+                                                ------------------------------------
+                                                → p ⊨ (at l ~> af l)
+
+  exitWhileF : ∀ {l b n stm} {p : Prog st n}    → (s* : Stm* l (while (~ (var b)) stm))
+                                                → p ⊨ (at l ~> □ (b*  (var b)))
+                                                → p ⊨ (at stm ~> at l)
+                                                ----------------------------------------
+                                                → p ⊨ (at l ~> af l)
+
+  skipWhile  : ∀ {l n stm} {p : Prog st n}      → (s* : Stm* l (while (bool false) stm))
+                                                -----------------------------------------
+                                                → p ⊨ (at l ~> af l)
+
+  enterBlock : ∀ {b bl n} {p : Prog st n}       → (s* : Stm* b (block bl))
+                                                → (f : String)
+                                                → f head bl
+                                                ---------------------------
+                                                → p ⊨ (at b ~> at f)
+
+  exitBlock  : ∀ {bl b n f} {p : Prog st n}     → (s* : Stm* b (block bl))
+                                                → fin bl f
+                                                ---------------------------
+                                                → p ⊨ (af f ~> af b)
+
+  infBlock   : ∀ {bl b n} {p : Prog st n}       → (s* : Stm* b (block bl))
+                                                → (stm : String)
+                                                → stm ∈* bl
+                                                ---------------------------
+                                                → p ⊨ (at stm ~> at b)
+
+  enterPar   : ∀ {l s₁ s₂ n} {p : Prog st n}    → (s* : Stm* l (s₁ || s₂))
+                                                --------------------------------
+                                                → p ⊨ (at l ~> (at s₁ ∧ at s₂))
+
+  exitPar    : ∀ {l s₁ s₂ n} {p : Prog st n}    → (s* : Stm* l (s₁ || s₂))
+                                                --------------------------------
+                                                → p ⊨ ((af s₁ ∧ af s₂) ~> af l)
+
+  infPar₁    : ∀ {l s₁ s₂ n} {p : Prog st n}    → (s* : Stm* l (s₁ || s₂))
+                                                ---------------------------
+                                                → p ⊨ (at s₂ ~> at s₁)
+
+  infPar₂    : ∀ {l s₁ s₂ n} {p : Prog st n}    → (s* : Stm* l (s₁ || s₂))
+                                                ---------------------------
+                                                → p ⊨ (at s₁ ~> at s₂)
+
+  join       : ∀ {l s₁ s₂ n} {p : Prog st n}    → (s* : Stm* l (s₁ || s₂))
+                                                → p ⊨ (at s₁ ~> af s₁)
+                                                → p ⊨ (at s₂ ~> af s₂)
+                                                -------------------------------------------
+                                                → p ⊨ ((at s₁ ∧ at s₂) ~> (af s₁ ∧ af s₂))
 
   -- LTL Rules
-  T-i       : ∀ {m s n}        {st : Stm* m s} {p : Prog st n} → p ⊨ T
-  assume    : ∀ {m s n φ}      {st : Stm* m s} {p : Prog st n} → (p ⋆ φ) ⊨ φ
-  weak      : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ ψ → (p ⋆ φ) ⊨ ψ
-  LEM       : ∀ {m s n φ}      {st : Stm* m s} {p : Prog st n} → p ⊨ (φ ∨ (∼ φ))
-  TL6       : ∀ {m s n φ}      {st : Stm* m s} {p : Prog st n} → p ⊨ ((◇ φ) ∨ (□ (∼ φ)))
-  ⊥-e       : ∀ {m s n φ}      {st : Stm* m s} {p : Prog st n} → p ⊨ ⊥ → p ⊨ φ
-  ∧-e₁      : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (φ ∧ ψ) → p ⊨ φ
-  ∧-e₂      : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (φ ∧ ψ) → p ⊨ ψ
-  ∧-i       : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ φ → p ⊨ ψ → p ⊨ (φ ∧ ψ)
-  ∨-i₁      : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ φ → p ⊨ (φ ∨ ψ)
-  ∨-i₂      : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ ψ → p ⊨ (φ ∨ ψ)
-  ∨-e       : ∀ {m s n φ ψ χ}  {st : Stm* m s} {p : Prog st n} → p ⊨ (φ ∨ ψ) → (p ⋆ φ) ⊨ χ → (p ⋆ ψ) ⊨ χ → p ⊨ χ
-  ⇒-i       : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → (p ⋆ φ) ⊨ ψ → p ⊨ (φ ⇒ ψ)
-  ⇒-e       : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (φ ⇒ ψ) → p ⊨ φ → p ⊨ ψ
-  ~>-□      : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (φ ~> ψ) → p ⊨ □ ((◇ φ) ⇒ (◇ ψ))
-  ~>-∧-e₁   : ∀ {m s n φ ψ χ}  {st : Stm* m s} {p : Prog st n} → p ⊨ (φ ~> (ψ ∧ χ)) → p ⊨ (φ ~> ψ)
-  ~>-∧-e₂   : ∀ {m s n φ ψ χ}  {st : Stm* m s} {p : Prog st n} → p ⊨ (φ ~> (ψ ∧ χ)) → p ⊨ (φ ~> χ)
-  □-e       : ∀ {m s n φ}      {st : Stm* m s} {p : Prog st n} → p ⊨ □ φ → p ⊨ φ
-  □-~>      : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (□ ((◇ φ) ⇒ (◇ ψ))) → p ⊨ (φ ~> ψ)
-  □-∧-i     : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ □ φ → p ⊨ □ ψ → p ⊨ □ (φ ∧ ψ)
-  □-∧-e₁    : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ □ (φ ∧ ψ) → p ⊨ □ φ
-  □-∧-e₂    : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ □ (φ ∧ ψ) → p ⊨ □ ψ
-  □-∧-exp   : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (□ (φ ∧ ψ)) → p ⊨ ((□ φ) ∧ (□ ψ))
-  □-∨-exp   : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (□ (φ ∨ ψ)) → p ⊨ ((□ φ) ∨ (□ ψ))
-  □-∧-◇     : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ □ φ → p ⊨ ◇ ψ → p ⊨ ◇ (φ ∧ ψ)
-  □-⇒-i     : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → (p ⋆ φ) ⊨ ◇ ψ → p ⊨ □ (φ ⇒ (◇ ψ))
-  ◇-i       : ∀ {m s n φ}      {st : Stm* m s} {p : Prog st n} → p ⊨ φ → p ⊨ ◇ φ
-  ◇-∧-exp   : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (◇ (φ ∧ ψ)) → p ⊨ ((◇ φ) ∧ (◇ ψ))
-  ◇-∧-e₁    : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ ◇ (φ ∧ ψ) → p ⊨ ◇ φ
-  ◇-∧-e₂    : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ ◇ (φ ∧ ψ) → p ⊨ ◇ ψ
-  ◇-□-∧-i   : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ ◇ (□ φ) → p ⊨ ◇ (□ ψ) → p ⊨ ◇ (□ (φ ∧ ψ))
-  ◇-∨-exp   : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ (◇ (φ ∨ ψ)) → p ⊨ ((◇ φ) ∨ (◇ ψ))
-  ◇-□-e     : ∀ {m s n φ}      {st : Stm* m s} {p : Prog st n} → p ⊨ ◇ (□ φ)→ p ⊨ ◇ φ
-  TL5       : ∀ {m s n φ ψ}    {st : Stm* m s} {p : Prog st n} → p ⊨ ((□ φ) ∧ (□ (φ ⇒ ψ))) → p ⊨ (□ ψ)
+
+  T-i       : ∀ {n}         {p : Prog st n}     → p ⊨ T
+
+  assume    : ∀ {n φ}       {p : Prog st n}     → (p ⋆ φ) ⊨ φ
+
+  weak      : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ ψ
+                                                --------------
+                                                → (p ⋆ φ) ⊨ ψ
+
+  LEM       : ∀ {n φ}       {p : Prog st n}     → p ⊨ (φ ∨ (∼ φ))
+
+  TL6       : ∀ {n φ}       {p : Prog st n}     → p ⊨ ((◇ φ) ∨ (□ (∼ φ)))
+
+  ⊥-e       : ∀ {n φ}       {p : Prog st n}     → p ⊨ ⊥
+                                                --------
+                                                → p ⊨ φ
+
+  ∧-e₁      : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ (φ ∧ ψ)
+                                                --------------
+                                                → p ⊨ φ
+
+  ∧-e₂      : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ (φ ∧ ψ)
+                                                --------------
+                                                → p ⊨ ψ
+
+  ∧-i       : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ φ
+                                                → p ⊨ ψ
+                                                --------------
+                                                → p ⊨ (φ ∧ ψ)
+
+  ∨-i₁      : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ φ
+                                                --------------
+                                                → p ⊨ (φ ∨ ψ)
+
+  ∨-i₂      : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ ψ
+                                                --------------
+                                                → p ⊨ (φ ∨ ψ)
+
+  ∨-e       : ∀ {n φ ψ χ}   {p : Prog st n}     → p ⊨ (φ ∨ ψ)
+                                                → (p ⋆ φ) ⊨ χ
+                                                → (p ⋆ ψ) ⊨ χ
+                                                --------------
+                                                → p ⊨ χ
+
+  ⇒-i       : ∀ {n φ ψ}     {p : Prog st n}     → (p ⋆ φ) ⊨ ψ
+                                                --------------
+                                                → p ⊨ (φ ⇒ ψ)
+
+  ⇒-e       : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ (φ ⇒ ψ)
+                                                ----------------
+                                                → p ⊨ φ → p ⊨ ψ
+
+  ~>-□      : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ (φ ~> ψ)
+                                                ------------------------
+                                                → p ⊨ □ ((◇ φ) ⇒ (◇ ψ))
+
+  ~>-∧-e₁   : ∀ {n φ ψ χ}   {p : Prog st n}     → p ⊨ (φ ~> (ψ ∧ χ))
+                                                ---------------------
+                                                → p ⊨ (φ ~> ψ)
+
+  ~>-∧-e₂   : ∀ {n φ ψ χ}   {p : Prog st n}     → p ⊨ (φ ~> (ψ ∧ χ))
+                                                ---------------------
+                                                → p ⊨ (φ ~> χ)
+
+  □-e       : ∀ {n φ}       {p : Prog st n}     → p ⊨ □ φ
+                                                ----------
+                                                → p ⊨ φ
+
+  □-mod     : ∀ {n φ ψ}     {p : Prog st n}     → (p ⋆ φ) ⊨ ψ
+                                                --------------------
+                                                → p ⊨ □ φ → p ⊨ □ ψ
+
+  □-~>      : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ (□ ((◇ φ) ⇒ (◇ ψ)))
+                                                --------------------------
+                                                → p ⊨ (φ ~> ψ)
+
+  □-∧-i     : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ □ φ
+                                                → p ⊨ □ ψ
+                                                ----------------
+                                                → p ⊨ □ (φ ∧ ψ)
+
+  □-∧-◇     : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ □ φ
+                                                → p ⊨ ◇ ψ
+                                                ----------------
+                                                → p ⊨ ◇ (φ ∧ ψ)
+
+  □-⇒-i     : ∀ {n φ ψ}     {p : Prog st n}     → (p ⋆ φ) ⊨ ◇ ψ
+                                                --------------------
+                                                → p ⊨ □ (φ ⇒ (◇ ψ))
+
+  ◇-i       : ∀ {n φ}       {p : Prog st n}     → p ⊨ φ
+                                                ----------
+                                                → p ⊨ ◇ φ
+
+  ◇-mod     : ∀ {n φ ψ}     {p : Prog st n}     → (p ⋆ φ) ⊨ ψ
+                                                → p ⊨ ◇ φ
+                                                --------------
+                                                → p ⊨ ◇ ψ
+
+  ◇-□-∧-i   : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ ◇ (□ φ)
+                                                → p ⊨ ◇ (□ ψ)
+                                                --------------------
+                                                → p ⊨ ◇ (□ (φ ∧ ψ))
+
+  ◇-∨-exp   : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ (◇ (φ ∨ ψ))
+                                                ----------------------
+                                                → p ⊨ ((◇ φ) ∨ (◇ ψ))
+
+  ◇-□-e     : ∀ {n φ}       {p : Prog st n}     → p ⊨ ◇ (□ φ)
+                                                --------------
+                                                → p ⊨ ◇ φ
+
+  TL5       : ∀ {n φ ψ}     {p : Prog st n}     → p ⊨ ((□ φ) ∧ (□ (φ ⇒ ψ)))
+                                                ----------------------------
+                                                → p ⊨ (□ ψ)
+
+
 
 {-==============================
             THEOREMS
 ==============================-}
+
 
 ∧-comm : ∀ {n φ ψ l st}  {m : Stm* l st} {p : Prog m n} → p ⊨ (φ ∧ ψ) → p ⊨ (ψ ∧ φ)
 ∧-comm p = ∧-i (∧-e₂ p) (∧-e₁ p)
@@ -81,10 +238,32 @@ data _⊨_ : ∀{l s n} {st : Stm* l s} → (p : Prog st n) → ELTL → Set whe
 ∧-trans : ∀ {n φ ψ χ l st} {m : Stm* l st} {p : Prog m n} → p ⊨ (φ ∧ ψ) → p ⊨ (ψ ∧ χ) → p ⊨ (φ ∧ χ)
 ∧-trans p q = ∧-i (∧-e₁ p) (∧-e₂ q)
 
-∧⇒∨ : ∀ {l st n φ ψ} {m : Stm* l st} {p : Prog m n}→ p ⊨ (φ ∧ ψ) → p ⊨ (φ ∨ ψ)
+∧⇒∨ : ∀ {l st n φ ψ} {m : Stm* l st} {p : Prog m n} → p ⊨ (φ ∧ ψ) → p ⊨ (φ ∨ ψ)
 ∧⇒∨ p = ∨-i₁ (∧-e₁ p)
 
-∨-comm : ∀ {l st n φ ψ} {m : Stm* l st} {p : Prog m n}→ p ⊨ (φ ∨ ψ) → p ⊨ (ψ ∨ φ)
+□-∧-comm : ∀ {l st n φ ψ} {m : Stm* l st} {p : Prog m n} → p ⊨ □ (φ ∧ ψ) → p ⊨ □ (ψ ∧ φ)
+□-∧-comm x = □-mod (∧-comm assume) x
+
+□-∧-e₁ : ∀ {l st n φ ψ} {m : Stm* l st} {p : Prog m n} → p ⊨ □ (φ ∧ ψ) → p ⊨ (□ φ)
+□-∧-e₁ x = □-mod (∧-e₁ assume) x
+
+□-∧-e₂ : ∀ {l st n φ ψ} {m : Stm* l st} {p : Prog m n} → p ⊨ □ (φ ∧ ψ) → p ⊨ (□ ψ)
+□-∧-e₂ x = □-mod (∧-e₂ assume) x
+
+
+□-∧-exp : ∀ {l n φ ψ st} {st* : Stm* l st} {p : Prog st* n} → p ⊨ (□ (φ ∧ ψ)) → p ⊨ ((□ φ) ∧ (□ ψ))
+□-∧-exp x = ∧-i (□-∧-e₁ x) (□-∧-e₂ x)
+
+◇-∧-e₁ : ∀ {l n φ ψ st} {st* : Stm* l st} {p : Prog st* n} → p ⊨ ◇ (φ ∧ ψ) → p ⊨ ◇ φ
+◇-∧-e₁ x = ◇-mod (∧-e₁ assume) x
+
+◇-∧-e₂ : ∀ {l n φ ψ st} {st* : Stm* l st} {p : Prog st* n} → p ⊨ ◇ (φ ∧ ψ) → p ⊨ ◇ ψ
+◇-∧-e₂ x = ◇-mod (∧-e₂ assume) x
+
+◇-∧-exp : ∀ {l n φ ψ st} {st* : Stm* l st} {p : Prog st* n} → p ⊨ (◇ (φ ∧ ψ)) → p ⊨ ((◇ φ) ∧ (◇ ψ))
+◇-∧-exp x = ∧-i (◇-∧-e₁ x) (◇-∧-e₂ x)
+
+∨-comm : ∀ {l st n φ ψ} {m : Stm* l st} {p : Prog m n} → p ⊨ (φ ∨ ψ) → p ⊨ (ψ ∨ φ)
 ∨-comm p = ∨-e p (∨-i₂ assume) (∨-i₁ assume)
 
 ⇒-trans : ∀ {l st n φ ψ χ} {m : Stm* l st} {p : Prog m n} → p ⊨ (φ ⇒ ψ) → p ⊨ (ψ ⇒ χ) → p ⊨ (φ ⇒ χ)

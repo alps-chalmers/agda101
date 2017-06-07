@@ -9,6 +9,7 @@ infixl 7 □ ◇
 infixl 8 ∼
 infixl 9 _∨_ _∧_
 infixl 10 _⇒_ _~>_
+infixl 11 ELTL
 
 -- ℕ extended with variables and operators.
 data ℕ* : Set where
